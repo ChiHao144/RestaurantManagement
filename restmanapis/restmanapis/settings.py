@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -27,7 +26,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -38,6 +36,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'restmans.apps.RestmansConfig',
+    'ckeditor',
+    'ckeditor_uploader',
+    'rest_framework',
+    'drf_yasg',
+    'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -50,7 +53,27 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
+
+# Configuration
+cloudinary.config(
+    cloud_name = "dbitlfhjx",
+    api_key = "889556431667884",
+    api_secret = "ycTIF7ajW7_lKzO_Ff4zAwpeB6g",
+    secure=True
+)
+
 ROOT_URLCONF = 'restmanapis.urls'
+
+MEDIA_ROOT = '%s/restmans/static/' % BASE_DIR
+
+CKEDITOR_UPLOAD_PATH = "ckeditors/dishes/"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ( 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',)
+}
 
 TEMPLATES = [
     {
@@ -69,17 +92,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'restmanapis.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'restmandb',
+        'USER': 'root',
+        'PASSWORD': 'Admin@123',
+        'HOST': '',
     }
 }
 
+import pymysql
+
+pymysql.install_as_MySQLdb()
+
+AUTH_USER_MODEL = 'restmans.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -99,7 +129,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -111,7 +140,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -121,3 +149,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+OAUTH2_PROVIDER = { 'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore' }
+
+CLIENT_ID = 'iQnD8RzJ1ECAqR9IH4FoyDJW7p8T9R40n2IEQrHz'
+CLIENT_SECRET = 'VSmBl2VTdylEm6ts68nQkRPHtXgIGnNAJsQPIDempHG4EYpWhjbfq5HRIRWQRqt7njdc1rE2Gbtu5HBk7pc4zYpUmWZmKWYx9x4jb08Rb1jgVRP2XciMurzHN9qvHbe2'

@@ -1,0 +1,72 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>THỐNG KÊ MÓN ĂN</h1>
+
+<div style="padding: 20px;">
+    <canvas id="myChart"></canvas>
+</div>
+
+<table style="width: 50%; border-collapse: collapse; margin-top: 20px;">
+    <thead style="background-color: #79aec8; color: white;">
+        <tr>
+            <th style="padding: 10px; border: 1px solid #ddd;">Tên Loại Món Ăn</th>
+            <th style="padding: 10px; border: 1px solid #ddd;">Số Lượng Món Ăn</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in stats %}
+        <tr style="background-color: {% cycle '#f2f2f2' 'white' %};">
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ s.name }}</td>
+            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">{{ s.dish_count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const statsData = {{ stats|safe }};
+        
+        const labels = statsData.map(item => item.name);
+        const data = statsData.map(item => item.dish_count);
+
+        new Chart(ctx, {
+            type: 'bar', // 'bar', 'pie', 'line'
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số lượng món ăn',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
