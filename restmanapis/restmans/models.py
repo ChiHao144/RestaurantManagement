@@ -4,6 +4,7 @@ from ckeditor.fields import RichTextField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from cloudinary.models import CloudinaryField
 
+
 # --- AUTHENTICATION MODEL ---
 class User(AbstractUser):
     """
@@ -11,7 +12,19 @@ class User(AbstractUser):
     Bạn có thể thêm các trường tùy chỉnh cho người dùng ở đây nếu cần.
     Ví dụ: avatar = models.ImageField(...)
     """
+
+    """
+        Cập nhật User model với các vai trò cụ thể.
+        """
+
+    class Role(models.TextChoices):
+        ADMIN = 'ADMIN', 'Quản trị viên'
+        MANAGER = 'MANAGER', 'Quản lý'
+        WAITER = 'WAITER', 'Phục vụ'
+        CUSTOMER = 'CUSTOMER', 'Khách hàng'
+
     avatar = CloudinaryField(null=True)
+    role = models.CharField(max_length=10, choices=Role.choices, default=Role.CUSTOMER, verbose_name="Vai trò")
 
 
 # --- BASE MODEL ---
@@ -52,7 +65,6 @@ class Dish(BaseModel):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='dishes',
                                  verbose_name="Loại món ăn")
 
-
     def __str__(self):
         return self.name
 
@@ -76,7 +88,13 @@ class Order(BaseModel):
         COMPLETED = 'COMPLETED', 'Hoàn thành'
         CANCELLED = 'CANCELLED', 'Đã hủy'
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', verbose_name="Người dùng")
+    # [THAY ĐỔI] Cho phép user là null đối với khách vãng lai
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', verbose_name="Người dùng",
+                             null=True, blank=True)
+    # [MỚI] Thêm liên kết đến bàn ăn cho các đơn hàng tại quán
+    table = models.ForeignKey('Table', on_delete=models.SET_NULL, related_name='orders', verbose_name="Bàn ăn",
+                              null=True, blank=True)
+
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Tổng tiền")
     payment_method = models.CharField(max_length=10, choices=PaymentMethod.choices, default=PaymentMethod.CASH,
                                       verbose_name="Hình thức thanh toán")
@@ -85,7 +103,12 @@ class Order(BaseModel):
     note = models.TextField(null=True, blank=True, verbose_name="Ghi chú hóa đơn")
 
     def __str__(self):
-        return f"Hóa đơn #{self.id} của {self.user.username}"
+        if self.user:
+            return f"Hóa đơn #{self.id} của {self.user.username}"
+        if self.table:
+            return f"Hóa đơn #{self.id} tại {self.table}"
+        return f"Hóa đơn #{self.id}"
+
 
     class Meta:
         verbose_name = "Hóa Đơn"
@@ -149,18 +172,21 @@ class Table(BaseModel):
         verbose_name_plural = "Các Bàn Ăn"
         ordering = ['table_number']
 
+
 class Booking(BaseModel):
     """Model Đơn Đặt Bàn (Tổng quan)"""
+
     class BookingStatus(models.TextChoices):
         CONFIRMED = 'CONFIRMED', 'Đã xác nhận'
         PENDING = 'PENDING', 'Đang chờ'
         CANCELLED = 'CANCELLED', 'Đã hủy'
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings', verbose_name="Người dùng")
-    booking_time = models.DateTimeField(verbose_name="Thời gian tạo đơn") # Thời gian khách hàng tạo đơn
+    booking_time = models.DateTimeField(verbose_name="Thời gian tạo đơn")  # Thời gian khách hàng tạo đơn
     number_of_guests = models.PositiveIntegerField(verbose_name="Số lượng khách")
     note = models.TextField(null=True, blank=True, verbose_name="Ghi chú chung")
-    status = models.CharField(max_length=10, choices=BookingStatus.choices, default=BookingStatus.PENDING, verbose_name="Trạng thái")
+    status = models.CharField(max_length=10, choices=BookingStatus.choices, default=BookingStatus.PENDING,
+                              verbose_name="Trạng thái")
 
     def __str__(self):
         return f"Đơn đặt bàn #{self.id} của {self.user.username}"
@@ -169,6 +195,7 @@ class Booking(BaseModel):
         verbose_name = "Đơn Đặt Bàn"
         verbose_name_plural = "Các Đơn Đặt Bàn"
         ordering = ['-booking_time']
+
 
 class BookingDetail(BaseModel):
     """Model Chi Tiết Đơn Đặt Bàn"""
