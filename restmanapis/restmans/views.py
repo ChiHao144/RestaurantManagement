@@ -1,13 +1,29 @@
+import json
+import uuid
+import requests
+import hmac
+import hashlib
+import logging
 from datetime import datetime
 
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count, Sum
+from django.db.models.functions import TruncMonth, TruncDay
 from rest_framework import viewsets, generics, parsers, permissions, status
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from restmans.models import Category, Dish, User, Review, Table, Booking, BookingDetail, OrderDetail, Order
-from restmans import serializers, paginators, perms
+from .models import Category, Dish, User, Review, Table, Booking, Order, OrderDetail, BookingDetail
+from . import serializers, paginators, perms
+
+# Cấu hình MoMo - BẠN NÊN ĐẶT CÁC GIÁ TRỊ NÀY TRONG settings.py
+MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
+MOMO_PARTNER_CODE = "MOMO"  # Thay bằng Partner Code của bạn
+MOMO_ACCESS_KEY = "F8BBA842ECF85"  # Thay bằng Access Key của bạn
+MOMO_SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz"  # Thay bằng Secret Key của bạn
+MOMO_IPN_URL = "https://localhost:8000/momo/ipn"  # Thay bằng URL IPN thật của bạn
+MOMO_REDIRECT_URL = "https://localhost:8000/momo/ipn"  # Thay bằng URL Redirect thật của bạn
 
 
 class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -15,46 +31,41 @@ class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
     serializer_class = serializers.CategorySerializer
 
 
-class DishViewSet(viewsets.ViewSet, generics.ListAPIView):
+class DishViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
     queryset = Dish.objects.filter(is_active=True)
     serializer_class = serializers.DishSerializer
     pagination_class = paginators.DishPagination
 
     def get_queryset(self):
         queryset = self.queryset
-
         q = self.request.query_params.get('q')
         if q:
             queryset = queryset.filter(name__icontains=q)
-
         cate_id = self.request.query_params.get('category_id')
         if cate_id:
             queryset = queryset.filter(category_id=cate_id)
-
         return queryset
 
     def get_permissions(self):
-        if self.action in ['get_reviews', 'rating'] and self.request.method.__eq__('POST'):
+        if self.action == 'add_review':
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
 
-    @action(methods=['get', 'post'], detail=True, url_path='reviews')
+    @action(methods=['get'], detail=True, url_path='reviews')
     def get_reviews(self, request, pk):
-        if request.method.__eq__('POST'):
-            u = serializers.ReviewSerializer(data={
-                'content': request.data.get('content'),
-                'rating': request.data.get('rating'),
-                'user': request.user.pk,
-                'dish': pk
-            })
+        dish = self.get_object()
+        reviews = dish.reviews.select_related('user').filter(is_active=True)
+        return Response(serializers.ReviewSerializer(reviews, many=True).data)
 
-            u.is_valid(raise_exception=True)
-            r = u.save()
-            return Response(serializers.ReviewSerializer(r).data, status=status.HTTP_201_CREATED)
-        else:
-            dish = self.get_object()
-            reviews = dish.reviews.select_related('user').filter(is_active=True)
-            return Response(serializers.ReviewSerializer(reviews, many=True).data, status=status.HTTP_200_OK)
+    @action(methods=['post'], detail=True, url_path='add-review')
+    def add_review(self, request, pk):
+        if Review.objects.filter(user=request.user, dish_id=pk).exists():
+            return Response({"error": "Bạn đã đánh giá món ăn này rồi."}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = serializers.ReviewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user, dish=self.get_object())
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
@@ -65,19 +76,14 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     @action(methods=['get', 'patch'], url_path='current-user', detail=False,
             permission_classes=[permissions.IsAuthenticated])
     def get_current_user(self, request):
-        if request.method.__eq__('PATCH'):
-            u = request.user
+        user = request.user
+        if request.method == 'PATCH':
+            serializer = serializers.UserSerializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
 
-            for key in request.data:
-                if key in ['first_name', 'last_name']:
-                    setattr(u, key, request.data[key])
-                elif key.__eq__('password'):
-                    u.set_password(request.data[key])
-
-            u.save()
-            return Response(serializers.UserSerializer(u).data)
-        else:
-            return Response(serializers.UserSerializer(request.user).data)
+        return Response(serializers.UserSerializer(user).data)
 
 
 class ReviewViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateAPIView):
@@ -87,25 +93,18 @@ class ReviewViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateAP
 
 
 class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
-    queryset =  Table.objects.filter(is_active=True)
+    queryset = Table.objects.filter(is_active=True)
     serializer_class = serializers.TableSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     @action(methods=['get'], detail=False, url_path='available')
     def available(self, request):
-        """
-        [MỚI] API để tìm các bàn trống.
-        Params: ?start_time=...&end_time=...&guests=...
-        Ví dụ: /tables/available/?start_time=2025-12-24T19:00:00&end_time=2025-12-24T21:00:00&guests=4
-        """
         start_time_str = request.query_params.get('start_time')
         end_time_str = request.query_params.get('end_time')
         guests = request.query_params.get('guests')
-
         if not all([start_time_str, end_time_str, guests]):
             return Response({'error': 'Vui lòng cung cấp đủ start_time, end_time, và guests.'},
                             status=status.HTTP_400_BAD_REQUEST)
-
         try:
             start_time = datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
             end_time = datetime.fromisoformat(end_time_str.replace('Z', '+00:00'))
@@ -114,42 +113,31 @@ class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
             return Response({'error': 'Định dạng thời gian hoặc số lượng khách không hợp lệ.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Logic tìm các bàn đã bị đặt và có khung giờ chồng chéo
-        # Một khung giờ bị chồng chéo nếu: (start1 < end2) and (end1 > start2)
         overlapping_bookings = BookingDetail.objects.filter(
             Q(start_time__lt=end_time) & Q(end_time__gt=start_time)
         )
-
-        # Lấy ID của các bàn đã bị chiếm dụng trong khung giờ đó
         booked_table_ids = overlapping_bookings.values_list('table_id', flat=True)
-
-        # Lấy tất cả các bàn thỏa mãn sức chứa và không nằm trong danh sách đã bị chiếm dụng
         available_tables = Table.objects.filter(capacity__gte=guests).exclude(id__in=booked_table_ids)
+        return Response(self.get_serializer(available_tables, many=True).data)
 
-        return Response(self.get_serializer(available_tables, many=True).data, status=status.HTTP_200_OK)
 
-class BookingViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIView):
-    """API để tạo và xem lịch sử đặt bàn của người dùng."""
+class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView):
     queryset = Booking.objects.all()
     serializer_class = serializers.BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
+        # Giả sử WAITER là một vai trò hợp lệ trong model User của bạn
         if user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.WAITER]:
             return self.queryset
         return self.queryset.filter(user=user)
 
     def perform_create(self, serializer):
-        """Tự động gán người dùng hiện tại khi tạo đơn."""
         serializer.save(user=self.request.user)
 
     @action(methods=['post'], detail=True, url_path='assign-details', permission_classes=[perms.IsManagerUser])
     def assign_details(self, request, pk):
-        """
-        Action để Nhân viên/Quản lý gán bàn cụ thể cho một đơn đặt bàn.
-        Input: { "details": [ { "table_id": 1, "start_time": "...", "end_time": "..." } ] }
-        """
         try:
             booking = self.get_object()
             if booking.status != 'PENDING':
@@ -161,26 +149,164 @@ class BookingViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.ListAPIV
                 return Response({'error': 'Dữ liệu "details" phải là một mảng.'}, status=status.HTTP_400_BAD_REQUEST)
 
             with transaction.atomic():
-                booking.details.all().delete()  # Xóa các chi tiết cũ để gán lại từ đầu
+                booking.details.all().delete()
                 for detail in details_data:
-                    table_id = detail.get('table_id')
-                    table = Table.objects.get(pk=table_id)
-                    BookingDetail.objects.create(
-                        booking=booking,
-                        table=table,
-                        start_time=detail.get('start_time'),
-                        end_time=detail.get('end_time'),
-                        note=detail.get('note')
-                    )
+                    table = Table.objects.get(pk=detail.get('table_id'))
+                    BookingDetail.objects.create(booking=booking, table=table, **detail)
 
-            # Sau khi gán bàn, tự động xác nhận đơn
             booking.status = Booking.BookingStatus.CONFIRMED
             booking.save()
-
-            return Response(self.get_serializer(booking).data, status=status.HTTP_200_OK)
-        except Booking.DoesNotExist:
-            return Response({'error': 'Đơn đặt bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
-        except Table.DoesNotExist:
-            return Response({'error': 'Bàn được chỉ định không tồn tại.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(self.get_serializer(booking).data)
+        except (Booking.DoesNotExist, Table.DoesNotExist):
+            return Response({'error': 'Đơn đặt bàn hoặc bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = serializers.OrderSerializer
+
+    def get_permissions(self):
+        if self.action in ['place_order_at_table', 'initiate_payment']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def get_object(self):
+        return get_object_or_404(Order, pk=self.kwargs["pk"])
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Order.objects.none()
+        if user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.WAITER]:
+            return self.queryset
+        return self.queryset.filter(user=user)
+
+    def create(self, request, *args, **kwargs):
+        """[ĐÃ MỞ LẠI] Hành động này dành cho người dùng đã đăng nhập (đặt hàng online)."""
+        cart = request.data.get('cart')
+        if not cart:
+            return Response({"error": "Giỏ hàng không được để trống."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                order = Order.objects.create(
+                    user=request.user,
+                    payment_method=request.data.get('payment_method', 'CASH'),
+                    note=request.data.get('note')
+                )
+                total_amount = 0
+                for item in cart:
+                    dish = Dish.objects.get(pk=item['dish_id'], is_active=True)
+                    quantity = int(item['quantity'])
+                    OrderDetail.objects.create(order=order, dish=dish, quantity=quantity, unit_price=dish.price)
+                    total_amount += dish.price * quantity
+                order.total_amount = total_amount
+                order.save()
+                return Response(serializers.OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+        except Dish.DoesNotExist:
+            return Response({"error": "Món ăn không tồn tại hoặc đã bị ẩn."}, status=status.HTTP_400_BAD_REQUEST)
+        except (ValueError, TypeError) as e:
+            return Response({"error": f"Dữ liệu giỏ hàng không hợp lệ: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=False, url_path='place-order-at-table')
+    def place_order_at_table(self, request):
+        table_id = request.data.get('table_id')
+        cart = request.data.get('cart')
+        if not all([table_id, cart]):
+            return Response({"error": "Vui lòng cung cấp table_id và cart."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            table = Table.objects.get(pk=table_id)
+            with transaction.atomic():
+                order, created = Order.objects.get_or_create(
+                    table=table, status=Order.OrderStatus.PENDING, defaults={'table': table}
+                )
+                total_amount = order.total_amount or 0
+                for item in cart:
+                    dish = Dish.objects.get(pk=item['dish_id'], is_active=True)
+                    quantity = int(item['quantity'])
+                    order_detail, created_detail = OrderDetail.objects.get_or_create(
+                        order=order, dish=dish, defaults={'quantity': quantity, 'unit_price': dish.price}
+                    )
+                    if not created_detail:
+                        order_detail.quantity += quantity
+                        order_detail.save()
+                    total_amount += dish.price * quantity
+                order.total_amount = total_amount
+                order.save()
+                return Response(self.get_serializer(order).data, status=status.HTTP_201_CREATED)
+        except Table.DoesNotExist:
+            return Response({"error": "Bàn không tồn tại."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=True, url_path='initiate-payment')
+    def initiate_payment(self, request, pk):
+        try:
+            order = self.get_object()
+            if order.status != 'PENDING':
+                return Response({'error': 'Chỉ có thể thanh toán cho hóa đơn đang chờ.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            order_info = f"Thanh toan don hang #{order.id}"
+            amount = str(int(order.total_amount))
+            order_id = f"{order.id}_{uuid.uuid4()}"
+            request_id = str(uuid.uuid4())
+            raw_signature_str = (
+                f"accessKey={MOMO_ACCESS_KEY}&amount={amount}&extraData=&ipnUrl={MOMO_IPN_URL}"
+                f"&orderId={order_id}&orderInfo={order_info}&partnerCode={MOMO_PARTNER_CODE}"
+                f"&redirectUrl={MOMO_REDIRECT_URL}&requestId={request_id}&requestType=payWithATM"
+            )
+            signature = hmac.new(bytes(MOMO_SECRET_KEY, 'ascii'), bytes(raw_signature_str, 'ascii'),
+                                 hashlib.sha256).hexdigest()
+            payload = {
+                'partnerCode': MOMO_PARTNER_CODE, 'requestId': request_id, 'amount': amount,
+                'orderId': order_id, 'orderInfo': order_info, 'redirectUrl': MOMO_REDIRECT_URL,
+                'ipnUrl': MOMO_IPN_URL, 'lang': "vi", 'extraData': "",
+                'requestType': "payWithATM", 'signature': signature
+            }
+            response = requests.post(MOMO_ENDPOINT, data=json.dumps(payload),
+                                     headers={'Content-Type': 'application/json'})
+            response_data = response.json()
+            if response_data.get("resultCode") == 0:
+                return Response({'payUrl': response_data.get('payUrl')})
+            else:
+                return Response({'error': 'Không thể tạo yêu cầu thanh toán.', 'momo_response': response_data},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Order.DoesNotExist:
+            return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(methods=['patch'], detail=True, url_path='update-status', permission_classes=[perms.IsWaiterUser])
+    def update_status(self, request, pk):
+        try:
+            order = self.get_object()
+            new_status = request.data.get('status')
+            if new_status not in [s[0] for s in Order.OrderStatus.choices]:
+                return Response({'error': 'Trạng thái không hợp lệ.'}, status=status.HTTP_400_BAD_REQUEST)
+            order.status = new_status
+            order.save()
+            return Response(self.get_serializer(order).data)
+        except Order.DoesNotExist:
+            return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class MomoIPNViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+
+    def create(self, request):
+        data = request.data
+        result_code = data.get('resultCode')
+        original_order_id = data.get('orderId', '').split('_')[0]
+        if result_code == 0:
+            try:
+                order = Order.objects.get(pk=original_order_id)
+                if order.status == 'PENDING':
+                    order.status = 'COMPLETED'
+                    order.payment_method = 'MOMO'
+                    order.save()
+                    logging.info(f"Order {original_order_id} updated to COMPLETED via MoMo IPN.")
+            except Order.DoesNotExist:
+                logging.error(f"Order {original_order_id} not found for MoMo IPN.")
+        else:
+            logging.warning(f"MoMo IPN received failed status for order {original_order_id}: {data.get('message')}")
+        return Response(status=status.HTTP_204_NO_CONTENT)

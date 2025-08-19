@@ -89,3 +89,21 @@ class BookingSerializer(serializers.ModelSerializer):
 
     # [THAY ĐỔI] Không cần ghi đè phương thức create nữa vì logic đã được đơn giản hóa.
 
+class OrderDetailDishSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(use_url=True)
+    class Meta:
+        model = Dish
+        fields = ['id', 'name', 'price', 'image']
+
+class OrderDetailSerializer(serializers.ModelSerializer):
+    dish = OrderDetailDishSerializer(read_only=True)
+    class Meta:
+        model = OrderDetail
+        fields = ['id', 'dish', 'quantity', 'unit_price']
+
+class OrderSerializer(serializers.ModelSerializer):
+    details = OrderDetailSerializer(many=True, read_only=True)
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Order
+        fields = ['id', 'user', 'total_amount', 'payment_method', 'status', 'note', 'created_date', 'details']
