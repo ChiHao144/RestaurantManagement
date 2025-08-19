@@ -22,8 +22,8 @@ MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
 MOMO_PARTNER_CODE = "MOMO"  # Thay bằng Partner Code của bạn
 MOMO_ACCESS_KEY = "F8BBA842ECF85"  # Thay bằng Access Key của bạn
 MOMO_SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz"  # Thay bằng Secret Key của bạn
-MOMO_IPN_URL = "https://localhost:8000/momo/ipn"  # Thay bằng URL IPN thật của bạn
-MOMO_REDIRECT_URL = "https://localhost:8000/momo/ipn"  # Thay bằng URL Redirect thật của bạn
+MOMO_IPN_URL = "https://localhost:8000/momo/"  # Thay bằng URL IPN thật của bạn
+MOMO_REDIRECT_URL = "https://localhost:8000/momo/"  # Thay bằng URL Redirect thật của bạn
 
 
 class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
