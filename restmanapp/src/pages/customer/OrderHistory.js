@@ -1,0 +1,137 @@
+import React, { useState, useEffect, useContext } from 'react';
+import { Container, Card, Button, Alert, Spinner, Row, Col, Badge, ListGroup, Image } from 'react-bootstrap';
+import { Link, Navigate } from 'react-router-dom';
+import moment from 'moment';
+import { UserContext } from '../../configs/UserContext';
+import { authApi, endpoints } from '../../configs/Apis';
+
+moment.locale('vi');
+
+const OrderHistory = () => {
+    const { user } = useContext(UserContext);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [payingOrderId, setPayingOrderId] = useState(null); // [MỚI] State để biết đang thanh toán cho đơn nào
+
+    useEffect(() => {
+        const loadOrders = async () => {
+            if (user) {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    const res = await authApi().get(endpoints['orders']);
+                    const ordersData = res.data.results || (Array.isArray(res.data) ? res.data : []);
+                    setOrders(ordersData);
+                } catch (err) {
+                    console.error("Lỗi khi tải lịch sử đặt món:", err);
+                    setError("Không thể tải được dữ liệu. Vui lòng thử lại.");
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadOrders();
+    }, [user]);
+
+    // [MỚI] Hàm xử lý khi nhấn nút thanh toán MoMo
+    const handlePayment = async (orderId) => {
+        setPayingOrderId(orderId); // Hiển thị spinner trên nút của đơn này
+        try {
+            const res = await authApi().post(endpoints['initiate-payment'](orderId));
+            window.location.href = res.data.payUrl; // Chuyển hướng đến trang MoMo
+        } catch (err) {
+            console.error("Lỗi khi tạo yêu cầu thanh toán:", err);
+            alert("Không thể tạo yêu cầu thanh toán. Vui lòng thử lại.");
+            setPayingOrderId(null); // Ẩn spinner nếu có lỗi
+        }
+    };
+
+    if (!user) {
+        return <Navigate to="/login" />;
+    }
+
+    if (loading) {
+        return (
+            <Container className="text-center my-5">
+                <Spinner animation="border" variant="dark" />
+                <p className="mt-2">Đang tải lịch sử...</p>
+            </Container>
+        );
+    }
+
+    if (error) {
+        return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
+    }
+    
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return { bg: 'warning', text: 'dark', label: 'Chưa thanh toán' };
+            case 'COMPLETED':
+                return { bg: 'success', text: 'white', label: 'Đã hoàn thành' };
+            case 'CANCELLED':
+                return { bg: 'secondary', text: 'white', label: 'Đã hủy' };
+            default:
+                return { bg: 'light', text: 'dark', label: status };
+        }
+    };
+
+    return (
+        <Container className="my-5">
+            <h1 className="text-center text-dark mb-4">LỊCH SỬ GỌI MÓN</h1>
+            
+            {orders.length === 0 ? (
+                <Alert variant="info">
+                    Bạn chưa có lịch sử gọi món nào. 
+                    <Link to="/" className="alert-link ms-2">Bắt đầu gọi món!</Link>
+                </Alert>
+            ) : (
+                <Row>
+                    {orders.map(order => {
+                        const statusBadge = getStatusBadge(order.status);
+                        return (
+                            <Col md={12} key={order.id} className="mb-4">
+                                <Card className="shadow-sm">
+                                    <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
+                                        <span>Hóa đơn #{order.id} - {moment(order.created_date).format('HH:mm DD/MM/YYYY')}</span>
+                                        <Badge bg={statusBadge.bg} text={statusBadge.text}>{statusBadge.label}</Badge>
+                                    </Card.Header>
+                                    <Card.Body>
+                                        <ListGroup variant="flush">
+                                            {order.details.map(detail => (
+                                                <ListGroup.Item key={detail.id} className="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <Image src={detail.dish.image} width="50" rounded className="me-3" />
+                                                        <span>{detail.dish.name} (x{detail.quantity})</span>
+                                                    </div>
+                                                    <span className="fw-bold">{parseInt(detail.unit_price * detail.quantity).toLocaleString('vi-VN')} VNĐ</span>
+                                                </ListGroup.Item>
+                                            ))}
+                                        </ListGroup>
+                                    </Card.Body>
+                                    <Card.Footer className="text-end">
+                                        <span className="fs-5 me-3"><strong>Tổng cộng:</strong> <span className="text-danger">{parseInt(order.total_amount).toLocaleString('vi-VN')} VNĐ</span></span>
+                                        {/* [MỚI] Nút thanh toán chỉ hiện khi đơn chưa thanh toán */}
+                                        {order.status === 'PENDING' && (
+                                            <Button 
+                                                variant="danger" 
+                                                onClick={() => handlePayment(order.id)}
+                                                disabled={payingOrderId === order.id}
+                                            >
+                                                {payingOrderId === order.id ? <Spinner size="sm" /> : 'Thanh toán MoMo'}
+                                            </Button>
+                                        )}
+                                    </Card.Footer>
+                                </Card>
+                            </Col>
+                        )
+                    })}
+                </Row>
+            )}
+        </Container>
+    );
+};
+
+export default OrderHistory;

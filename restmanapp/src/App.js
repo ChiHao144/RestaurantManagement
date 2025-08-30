@@ -1,24 +1,60 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Header from "./components/layout/Header";
-import Footer from "./components/layout/Footer";
-import Home from "./components/Home";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container } from "react-bootstrap";
+
+import { UserProvider } from "./configs/UserContext";
+import { CartProvider } from "./configs/CartContext";
+
+// Layouts
+import CustomerLayout from "./components/layout/CustomerLayout";
+import ManagerLayout from "./components/layout/ManagerLayout";
+
+// Pages khách
+import Home from "./pages/home/Home";
+import Login from "./pages/auth/Login";
+import Booking from "./pages/customer/Booking";
+import BookingHistory from "./pages/customer/BookingHistory";
+import Cart from "./pages/customer/Cart";
+import OrderHistory from "./pages/customer/OrderHistory";
+
+// Pages manager
+import ManagerDashboard from "./pages/manager/ManagerDashboard";
+import AssignTable from "./pages/manager/AssignTable";
+import Register from "./pages/auth/Register";
+import AllBookings from "./pages/manager/AllBooking";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Header />
+    <UserProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* ---- Layout cho khách hàng ---- */}
+            <Route path="/" element={<CustomerLayout />}>
+              <Route index element={<Home />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+              <Route path="booking" element={<Booking />} />
+              <Route path="history-booking" element={<BookingHistory />} />
+              <Route path="cart" element={<Cart />} />
+              <Route path="order-history" element={<OrderHistory />} />
+            </Route>
 
-      <Container>
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </Container>
+            {/* ---- Layout cho manager ---- */}
+            <Route path="/manager" element={<ManagerLayout />}>
+              <Route index element={<ManagerDashboard />} />
+              <Route path="all-bookings" element={<AllBookings />} />
+              <Route path="assign/:bookingId" element={<AssignTable />} />
+              <Route path="menu" element={<div>Quản lý menu</div>} />
+              <Route path="staff" element={<div>Quản lý nhân viên</div>} />
+            </Route>
 
-      <Footer />
-    </BrowserRouter>
+            {/* 404 fallback */}
+            <Route path="*" element={<h1>404 - Không tìm thấy trang</h1>} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
+    </UserProvider>
   );
-}
+};
 
 export default App;

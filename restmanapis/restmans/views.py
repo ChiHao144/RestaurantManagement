@@ -121,7 +121,7 @@ class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
         return Response(self.get_serializer(available_tables, many=True).data)
 
 
-class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView):
+class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
     queryset = Booking.objects.all()
     serializer_class = serializers.BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -161,6 +161,33 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView):
             return Response({'error': 'Đơn đặt bàn hoặc bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['get'], detail=False, url_path='pending', permission_classes=[perms.IsManagerUser])
+    def pending_bookings(self, request):
+        bookings = self.get_queryset().filter(status=Booking.BookingStatus.PENDING)
+        serializer = self.get_serializer(bookings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['patch'], detail=True, url_path='cancel', permission_classes=[permissions.IsAuthenticated])
+    def cancel(self, request, pk):
+        try:
+            booking = self.get_object()
+            user = request.user
+
+            # Chỉ chủ đơn hoặc nhân viên mới có quyền hủy
+            if booking.user != user and not user.is_staff:
+                return Response({'error': 'Bạn không có quyền thực hiện hành động này.'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+            if booking.status in ['PENDING', 'CONFIRMED']:
+                booking.status = 'CANCELLED'
+                booking.save()
+                return Response(self.get_serializer(booking).data, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Không thể hủy đơn đặt bàn đã hoàn thành hoặc đã bị hủy.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        except Booking.DoesNotExist:
+            return Response({'error': 'Đơn đặt bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView):
