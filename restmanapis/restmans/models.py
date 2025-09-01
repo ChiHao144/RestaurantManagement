@@ -161,8 +161,14 @@ class Review(BaseModel):
 
 # --- BOOKING & TABLE MODELS (UPDATED) ---
 class Table(BaseModel):
+    class TableStatus(models.TextChoices):
+        AVAILABLE = 'AVAILABLE', 'Trống'
+        OCCUPIED = 'OCCUPIED', 'Đang phục vụ'
+        CLEANING = 'CLEANING', 'Cần dọn dẹp'
     table_number = models.CharField(max_length=10, unique=True, verbose_name="Số bàn")
     capacity = models.PositiveIntegerField(verbose_name="Sức chứa")
+    status = models.CharField(max_length=10, choices=TableStatus.choices, default=TableStatus.AVAILABLE,
+                              verbose_name="Trạng thái bàn")
 
     def __str__(self):
         return f"Bàn {self.table_number} (Sức chứa: {self.capacity} người)"

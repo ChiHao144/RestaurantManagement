@@ -16,9 +16,12 @@ export const endpoints = {
     'pending-bookings': '/bookings/pending/',
     'cancel-booking': (bookingId) => `/bookings/${bookingId}/cancel/`,
     'orders': '/orders/',
+    'order-detail': (orderId) => `/orders/${orderId}/`,
     'place-order-at-table': '/orders/place-order-at-table/',
     'initiate-payment': (orderId) => `/orders/${orderId}/initiate-payment/`,
     'momo-ipn': '/momo/',
+    'table-statuses': '/tables/statuses/',
+    'update-table-status': (tableId) => `/tables/${tableId}/update-status/`,
 }
 
 export const authApi = () => {

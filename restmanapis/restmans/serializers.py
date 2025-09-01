@@ -61,7 +61,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 class TableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
-        fields = ['id', 'table_number', 'capacity']
+        fields = ['id', 'table_number', 'capacity', 'status']
 
 class BookingDetailSerializer(serializers.ModelSerializer):
     """Serializer cho Chi tiết Đặt bàn."""
@@ -104,6 +104,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     details = OrderDetailSerializer(many=True, read_only=True)
     user = UserSerializer(read_only=True)
+    table = TableSerializer(read_only=True)
     class Meta:
         model = Order
-        fields = ['id', 'user', 'total_amount', 'payment_method', 'status', 'note', 'created_date', 'details']
+        fields = ['id', 'user', 'table', 'total_amount', 'payment_method', 'status', 'note', 'created_date', 'details']

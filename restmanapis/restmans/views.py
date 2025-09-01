@@ -120,6 +120,34 @@ class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
         available_tables = Table.objects.filter(capacity__gte=guests).exclude(id__in=booked_table_ids)
         return Response(self.get_serializer(available_tables, many=True).data)
 
+    @action(methods=['get'], detail=False, url_path='statuses', permission_classes=[perms.IsManagerUser])
+    def statuses(self, request):
+        """
+        API để lấy danh sách tất cả các bàn và TRẠNG THÁI HIỆN TẠI của chúng.
+        """
+        tables = Table.objects.all().order_by('table_number')
+        return Response(self.get_serializer(tables, many=True).data)
+
+    @action(methods=['patch'], detail=True, url_path='update-status', permission_classes=[perms.IsManagerUser])
+    def update_status(self, request, pk=None):
+        """
+        API để nhân viên CẬP NHẬT TRẠNG THÁI của một bàn cụ thể.
+        Input: { "status": "OCCUPIED" }
+        """
+        try:
+            table = self.get_object()
+            new_status = request.data.get('status')
+
+            # Kiểm tra xem trạng thái mới có hợp lệ không
+            if new_status not in [s[0] for s in Table.TableStatus.choices]:
+                return Response({'error': 'Trạng thái không hợp lệ.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            table.status = new_status
+            table.save()
+            return Response(self.get_serializer(table).data, status=status.HTTP_200_OK)
+        except Table.DoesNotExist:
+            return Response({'error': 'Bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
     queryset = Booking.objects.all()
@@ -190,7 +218,7 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
             return Response({'error': 'Đơn đặt bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView):
+class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
     queryset = Order.objects.all()
     serializer_class = serializers.OrderSerializer
 

@@ -26,13 +26,16 @@ const ManagerHeader = () => {
         <Navbar.Collapse id="manager-navbar-nav">
           <Nav className="me-auto">
             <LinkContainer to="/manager">
-              <Nav.Link>📑 Danh sách đặt bàn</Nav.Link>
+              <Nav.Link>Danh sách đơn đặt bàn</Nav.Link>
             </LinkContainer>
             <LinkContainer to="/manager/all-bookings">
               <Nav.Link>Tất cả đơn đặt bàn</Nav.Link>
             </LinkContainer>
-            <LinkContainer to="/manager/menu">
-              <Nav.Link>🍽️ Quản lý menu</Nav.Link>
+            <LinkContainer to="/manager/table-management">
+              <Nav.Link>Quản lý bàn ăn</Nav.Link>
+            </LinkContainer>
+            <LinkContainer to="/manager/orders">
+              <Nav.Link>Quản lý hóa đơn</Nav.Link>
             </LinkContainer>
             <LinkContainer to="/manager/staff">
               <Nav.Link>👨‍🍳 Nhân viên</Nav.Link>

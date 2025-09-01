@@ -21,6 +21,10 @@ import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import AssignTable from "./pages/manager/AssignTable";
 import Register from "./pages/auth/Register";
 import AllBookings from "./pages/manager/AllBooking";
+import TableStatusDashboard from "./pages/waiter/TableStatusDashboard";
+import OrderManagement from "./pages/manager/OrderManager";
+import OrderDetail from "./pages/manager/OrderDetail";
+import PrintableInvoice from "./pages/manager/PrintableInvoice";
 
 const App = () => {
   return (
@@ -44,9 +48,18 @@ const App = () => {
               <Route index element={<ManagerDashboard />} />
               <Route path="all-bookings" element={<AllBookings />} />
               <Route path="assign/:bookingId" element={<AssignTable />} />
+              <Route path="table-management" element={<TableStatusDashboard />} />
+              <Route path="orders" element={<OrderManagement />} />
+              <Route path="orderdetails/:orderId" element={<OrderDetail />} />
+              <Route path="print-invoice" element={<PrintableInvoice />} />
               <Route path="menu" element={<div>Quản lý menu</div>} />
               <Route path="staff" element={<div>Quản lý nhân viên</div>} />
             </Route>
+
+            {/* ---- Layout cho waiter ---- */}
+            {/* <Route path="/waiter" element={<ManagerLayout />}>
+              <Route path="table-management" element={<TableStatusDashboard />} />
+            </Route> */}
 
             {/* 404 fallback */}
             <Route path="*" element={<h1>404 - Không tìm thấy trang</h1>} />

@@ -15,8 +15,8 @@ const ManagerLayout = () => {
           <Col md={2} className="bg-dark text-white min-vh-100 p-3">
             <h4 className="mb-4">Quản lý</h4>
             <nav className="d-flex flex-column gap-2">
-              <a href="/manager" className="text-white text-decoration-none">📊 Dashboard</a>
-              <a href="/manager/bookings" className="text-white text-decoration-none">📑 Danh sách đặt bàn</a>
+              <a href="/manager" className="text-white text-decoration-none">Danh sách đơn đặt bàn</a>
+              <a href="/manager/all-bookings" className="text-white text-decoration-none">Tất cả đơn đặt bàn</a>
               <a href="/manager/assign" className="text-white text-decoration-none">🪑 Gán bàn</a>
               <a href="/manager/menu" className="text-white text-decoration-none">🍽️ Quản lý menu</a>
               <a href="/manager/staff" className="text-white text-decoration-none">👨‍🍳 Nhân viên</a>
