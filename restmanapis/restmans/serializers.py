@@ -35,7 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'password', 'avatar', 'role']
+        fields = ['first_name', 'last_name', 'username', 'password', 'avatar', 'role', 'email']
         extra_kwargs = {
             'password': {
                 'write_only': True
@@ -52,11 +52,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['id', 'content', 'rating', 'user', 'created_date', 'dish']
-        extra_kwargs = {
-            'dish': {
-                'write_only': True
-            }
-        }
+        read_only_fields = ['user', 'dish']
 
 class TableSerializer(serializers.ModelSerializer):
     class Meta:

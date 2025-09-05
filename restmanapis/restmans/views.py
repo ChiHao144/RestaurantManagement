@@ -234,7 +234,7 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
         user = self.request.user
         if not user.is_authenticated:
             return Order.objects.none()
-        if user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.WAITER]:
+        if user.role in [User.Role.MANAGER]:
             return self.queryset
         return self.queryset.filter(user=user)
 
@@ -331,18 +331,27 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
         except Order.DoesNotExist:
             return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
 
-    @action(methods=['patch'], detail=True, url_path='update-status', permission_classes=[perms.IsWaiterUser])
-    def update_status(self, request, pk):
+    @action(methods=['patch'], detail=True, url_path='update-order')
+    def update_order(self, request, pk=None):
+        """
+        [PHIÊN BẢN SỬA LỖI] API để nhân viên cập nhật hóa đơn.
+        """
         try:
             order = self.get_object()
-            new_status = request.data.get('status')
-            if new_status not in [s[0] for s in Order.OrderStatus.choices]:
-                return Response({'error': 'Trạng thái không hợp lệ.'}, status=status.HTTP_400_BAD_REQUEST)
-            order.status = new_status
-            order.save()
-            return Response(self.get_serializer(order).data)
+
+            # Sử dụng serializer để xác thực và cập nhật dữ liệu
+            # partial=True cho phép cập nhật một phần (chỉ những trường được gửi lên)
+            serializer = self.get_serializer(order, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()  # Lưu các thay đổi vào database
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         except Order.DoesNotExist:
-            return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Hóa đơn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Bắt các lỗi validation từ serializer
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MomoIPNViewSet(viewsets.ViewSet):
@@ -351,6 +360,10 @@ class MomoIPNViewSet(viewsets.ViewSet):
     def create(self, request):
         data = request.data
         result_code = data.get('resultCode')
+        try:
+            result_code = int(result_code)
+        except (TypeError, ValueError):
+            result_code = -1  # giá trị mặc định nếu parse lỗi
         original_order_id = data.get('orderId', '').split('_')[0]
         if result_code == 0:
             try:

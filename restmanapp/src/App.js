@@ -25,6 +25,8 @@ import TableStatusDashboard from "./pages/waiter/TableStatusDashboard";
 import OrderManagement from "./pages/manager/OrderManager";
 import OrderDetail from "./pages/manager/OrderDetail";
 import PrintableInvoice from "./pages/manager/PrintableInvoice";
+import DishDetail from "./pages/customer/DishDetail";
+import Profile from "./pages/common/Profile";
 
 const App = () => {
   return (
@@ -35,12 +37,15 @@ const App = () => {
             {/* ---- Layout cho khách hàng ---- */}
             <Route path="/" element={<CustomerLayout />}>
               <Route index element={<Home />} />
+              <Route path="categories/:categoryName" element={<Home />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="booking" element={<Booking />} />
               <Route path="history-booking" element={<BookingHistory />} />
               <Route path="cart" element={<Cart />} />
               <Route path="order-history" element={<OrderHistory />} />
+              <Route path="dishes/:dishId" element={<DishDetail />} />
+              <Route path="profile" element={<Profile />} />
             </Route>
 
             {/* ---- Layout cho manager ---- */}
@@ -52,8 +57,7 @@ const App = () => {
               <Route path="orders" element={<OrderManagement />} />
               <Route path="orderdetails/:orderId" element={<OrderDetail />} />
               <Route path="print-invoice" element={<PrintableInvoice />} />
-              <Route path="menu" element={<div>Quản lý menu</div>} />
-              <Route path="staff" element={<div>Quản lý nhân viên</div>} />
+              <Route path="profile" element={<Profile />} />
             </Route>
 
             {/* ---- Layout cho waiter ---- */}

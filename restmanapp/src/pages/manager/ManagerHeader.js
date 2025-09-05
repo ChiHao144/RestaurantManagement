@@ -37,9 +37,6 @@ const ManagerHeader = () => {
             <LinkContainer to="/manager/orders">
               <Nav.Link>Quản lý hóa đơn</Nav.Link>
             </LinkContainer>
-            <LinkContainer to="/manager/staff">
-              <Nav.Link>👨‍🍳 Nhân viên</Nav.Link>
-            </LinkContainer>
           </Nav>
 
           <Nav>
@@ -62,10 +59,10 @@ const ManagerHeader = () => {
                 id="manager-user-dropdown"
               >
                 <LinkContainer to="/profile">
-                  <NavDropdown.Item>👤 Thông tin cá nhân</NavDropdown.Item>
+                  <NavDropdown.Item>Thông tin cá nhân</NavDropdown.Item>
                 </LinkContainer>
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={handleLogout}>🚪 Đăng xuất</NavDropdown.Item>
+                <NavDropdown.Item onClick={handleLogout}>Đăng xuất</NavDropdown.Item>
               </NavDropdown>
             ) : null}
           </Nav>

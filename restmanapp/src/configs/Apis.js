@@ -1,7 +1,7 @@
 import axios from "axios";
 import cookie from 'react-cookies';
 
-const BASE_URL = "http://192.168.1.103:8000/";
+const BASE_URL = "http://192.168.1.105:8000/";
 
 export const endpoints = {
     'categories': '/categories/',
@@ -22,6 +22,12 @@ export const endpoints = {
     'momo-ipn': '/momo/',
     'table-statuses': '/tables/statuses/',
     'update-table-status': (tableId) => `/tables/${tableId}/update-status/`,
+    'dish-detail': (dishId) => `/dishes/${dishId}/`,
+    'dish-reviews': (dishId) => `/dishes/${dishId}/reviews/`,
+    'add-review': (dishId) => `/dishes/${dishId}/add-review/`,
+    'update-review': (reviewId) => `/reviews/${reviewId}/`,
+    'delete-review': (reviewId) => `/reviews/${reviewId}/`,
+    'update-order': (orderId) => `/orders/${orderId}/update-order/`,
 }
 
 export const authApi = () => {

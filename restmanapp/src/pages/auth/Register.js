@@ -103,6 +103,17 @@ const Register = () => {
                     </Form.Group>
 
                     <Form.Group className="mb-3">
+                        <Form.Label>Địa chỉ email</Form.Label>
+                        <Form.Control 
+                            type="text" 
+                            placeholder="Nhập địa chỉ email" 
+                            value={user.email}
+                            onChange={(e) => change(e, "email")}
+                            required 
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
                         <Form.Label>Mật khẩu</Form.Label>
                         <Form.Control 
                             type="password" 
