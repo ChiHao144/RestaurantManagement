@@ -36,15 +36,25 @@ const OrderHistory = () => {
     }, [user]);
 
     // [MỚI] Hàm xử lý khi nhấn nút thanh toán MoMo
-    const handlePayment = async (orderId) => {
-        setPayingOrderId(orderId); // Hiển thị spinner trên nút của đơn này
+    const handlePayment = async (orderId, paymentType) => {
         try {
-            const res = await authApi().post(endpoints['initiate-payment'](orderId));
-            window.location.href = res.data.payUrl; // Chuyển hướng đến trang MoMo
+            let endpoint;
+            if (paymentType === 'MOMO') {
+                endpoint = endpoints['initiate-payment'](orderId);
+            }
+            // [CẬP NHẬT] Thêm logic cho VNPay
+            else if (paymentType === 'VNPAY') {
+                endpoint = endpoints['initiate-vnpay-payment'](orderId);
+            }
+            else {
+                return;
+            }
+
+            const res = await authApi().post(endpoint);
+            window.location.href = res.data.payUrl || res.data.paymentUrl;
         } catch (err) {
-            console.error("Lỗi khi tạo yêu cầu thanh toán:", err);
+            console.error(`Lỗi khi tạo thanh toán ${paymentType}:`, err);
             alert("Không thể tạo yêu cầu thanh toán. Vui lòng thử lại.");
-            setPayingOrderId(null); // Ẩn spinner nếu có lỗi
         }
     };
 
@@ -64,7 +74,7 @@ const OrderHistory = () => {
     if (error) {
         return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
     }
-    
+
     const getStatusBadge = (status) => {
         switch (status) {
             case 'PENDING':
@@ -81,10 +91,10 @@ const OrderHistory = () => {
     return (
         <Container className="my-5">
             <h1 className="text-center text-dark mb-4">LỊCH SỬ GỌI MÓN</h1>
-            
+
             {orders.length === 0 ? (
                 <Alert variant="info">
-                    Bạn chưa có lịch sử gọi món nào. 
+                    Bạn chưa có lịch sử gọi món nào.
                     <Link to="/" className="alert-link ms-2">Bắt đầu gọi món!</Link>
                 </Alert>
             ) : (
@@ -115,13 +125,15 @@ const OrderHistory = () => {
                                         <span className="fs-5 me-3"><strong>Tổng cộng:</strong> <span className="text-danger">{parseInt(order.total_amount).toLocaleString('vi-VN')} VNĐ</span></span>
                                         {/* [MỚI] Nút thanh toán chỉ hiện khi đơn chưa thanh toán */}
                                         {order.status === 'PENDING' && (
-                                            <Button 
-                                                variant="danger" 
-                                                onClick={() => handlePayment(order.id)}
-                                                disabled={payingOrderId === order.id}
-                                            >
-                                                {payingOrderId === order.id ? <Spinner size="sm" /> : 'Thanh toán MoMo'}
-                                            </Button>
+                                            <>
+                                                <Button variant="danger" className="me-2" onClick={() => handlePayment(order.id, 'MOMO')}>
+                                                    Thanh toán MoMo
+                                                </Button>
+                                                {/* [CẬP NHẬT] Thêm nút thanh toán VNPay */}
+                                                <Button variant="primary" onClick={() => handlePayment(order.id, 'VNPAY')}>
+                                                    Thanh toán VNPay
+                                                </Button>
+                                            </>
                                         )}
                                     </Card.Footer>
                                 </Card>

@@ -6,7 +6,8 @@ from django.utils.safestring import mark_safe
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 
-from .models import Category, Dish, Order, OrderDetail, Review, Table, Booking, User, BookingDetail
+from .models import Category, Dish, Order, OrderDetail, Review, Table, Booking, User, BookingDetail, ReviewReply
+
 
 # --- Custom Forms ---
 class DishForm(forms.ModelForm):
@@ -68,10 +69,16 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ['total_amount', 'user']
     inlines = [OrderDetailInline] # Thêm chi tiết hóa đơn vào trang hóa đơn
 
+class ReviewReplyInline(admin.TabularInline):
+    model = ReviewReply
+    extra = 1 # Hiển thị sẵn 1 ô để thêm phản hồi mới
+    readonly_fields = ['user', 'created_date', 'updated_date']
+
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'dish', 'rating', 'created_date']
     search_fields = ['user__username', 'dish__name']
     list_filter = ['rating', 'created_date']
+    inlines = [ReviewReplyInline]  # Thêm inline vào đây
 
 class BookingAdmin(admin.ModelAdmin):
     """Tùy chỉnh admin cho Đơn Đặt Bàn."""
@@ -116,6 +123,7 @@ admin_site.register(Category, CategoryAdmin)
 admin_site.register(Dish, DishAdmin)
 admin_site.register(Order, OrderAdmin)
 admin_site.register(Review, ReviewAdmin)
+admin_site.register(ReviewReply)
 admin_site.register(Table)
 admin_site.register(Booking, BookingAdmin)
 admin_site.register(User) # Đăng ký cả model User

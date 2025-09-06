@@ -56,6 +56,38 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 
+# === CẤU HÌNH GỬI EMAIL ===
+# Sử dụng backend SMTP của Django
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Máy chủ gửi mail của Gmail
+EMAIL_HOST = 'smtp.gmail.com'
+# Cổng SMTP
+EMAIL_PORT = 587
+# Sử dụng Transport Layer Security (TLS)
+EMAIL_USE_TLS = True
+# Tài khoản email của bạn
+EMAIL_HOST_USER = 'haopc1404@gmail.com'
+# Mật khẩu ứng dụng của tài khoản email
+EMAIL_HOST_PASSWORD = 'fglztnymslybrmzq'
+# Email mặc định sẽ hiển thị ở phần "From"
+DEFAULT_FROM_EMAIL = 'haopc1404@gmail.com'
+
+# Cấu hình MoMo - BẠN NÊN ĐẶT CÁC GIÁ TRỊ NÀY TRONG settings.py
+MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
+MOMO_PARTNER_CODE = "MOMO"  # Thay bằng Partner Code của bạn
+MOMO_ACCESS_KEY = "F8BBA842ECF85"  # Thay bằng Access Key của bạn
+MOMO_SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz"  # Thay bằng Secret Key của bạn
+MOMO_IPN_URL = "https://localhost:8000/momo/"  # Thay bằng URL IPN thật của bạn
+MOMO_REDIRECT_URL = "https://localhost:8000/momo/"  # Thay bằng URL Redirect thật của bạn
+
+# === CẤU HÌNH VNPAY ===
+VNPAY_ENDPOINT = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+VNPAY_TMNCODE = "LSGEFJZL"  # Lấy từ VNPay
+VNPAY_HASH_SECRET_KEY = "54BE9GO6556S6E94KB9VLV46XLHTYEKM" # Lấy từ VNPay
+VNPAY_RETURN_URL = "https://9318144ca538.ngrok-free.app/vnpay/return/" # URL front-end để khách hàng quay về
+# URL IPN cần ngrok để test, ví dụ: "https://your-ngrok.ngrok-free.app/vnpay/ipn/"
+VNPAY_IPN_URL = "https://9318144ca538.ngrok-free.app/vnpay/"
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 import cloudinary

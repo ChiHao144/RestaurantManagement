@@ -1,4 +1,4 @@
-from restmans.models import Category, Dish, Order, BookingDetail, Booking, OrderDetail, Table, Review, User
+from restmans.models import Category, Dish, Order, BookingDetail, Booking, OrderDetail, Table, Review, User, ReviewReply
 from rest_framework import serializers
 
 
@@ -43,7 +43,16 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
 
+class ReviewReplySerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True) # Hiển thị thông tin nhân viên phản hồi
+
+    class Meta:
+        model = ReviewReply
+        fields = ['id', 'content', 'user', 'created_date']
+        read_only_fields = ['user']
+
 class ReviewSerializer(serializers.ModelSerializer):
+    replies = ReviewReplySerializer(many=True, read_only=True)
     def to_representation(self, instance):
         data =  super().to_representation(instance)
         data['user'] = UserSerializer(instance.user).data
@@ -51,7 +60,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ['id', 'content', 'rating', 'user', 'created_date', 'dish']
+        fields = ['id', 'content', 'rating', 'user', 'created_date', 'dish', 'replies']
         read_only_fields = ['user', 'dish']
 
 class TableSerializer(serializers.ModelSerializer):

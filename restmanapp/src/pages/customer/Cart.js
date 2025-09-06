@@ -1,31 +1,28 @@
-import React, { useContext, useState } from 'react';
-import {
-  Container,
-  Button,
-  Image,
-  InputGroup,
-  FormControl,
-  Alert,
-  Form,
-  Col,
-  Card,
-  Row,
-} from 'react-bootstrap';
+import React, { useContext, useEffect, useState } from 'react';
+import { Container, Button, Alert, Form, Col, Card, Row, Image, InputGroup, FormControl } from 'react-bootstrap';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Apis, { authApi, endpoints } from '../../configs/Apis';
 import { UserContext } from '../../configs/UserContext';
 import { CartContext } from '../../configs/CartContext';
+import { TableContext } from '../../configs/TableContext'; // [MỚI] Import TableContext
 
 const Cart = () => {
   const { cart, updateQuantity, clearCart } = useContext(CartContext);
   const { user } = useContext(UserContext);
+  const { tableId, setCurrentTable } = useContext(TableContext); // [MỚI] Sử dụng TableContext
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
-
-  // [MỚI] Lấy tableId từ URL nếu gọi món tại bàn
   const [searchParams] = useSearchParams();
-  const tableId = searchParams.get('table');
+
+  // [MỚI] Logic thông minh để lưu mã bàn vào "bộ nhớ"
+  useEffect(() => {
+    const tableIdFromUrl = searchParams.get('table');
+    if (tableIdFromUrl) {
+      setCurrentTable(tableIdFromUrl);
+    }
+  }, [searchParams, setCurrentTable]);
+
 
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + item.quantity * item.price, 0);
@@ -39,6 +36,7 @@ const Cart = () => {
         quantity: item.quantity,
       }));
 
+      // [SỬA LỖI] Luôn kiểm tra mã bàn từ "bộ nhớ" (TableContext)
       if (tableId) {
         // Quy trình gọi món tại bàn
         await Apis.post(endpoints['place-order-at-table'], {
@@ -47,6 +45,8 @@ const Cart = () => {
         });
         alert(`✅ Gọi món thành công cho Bàn ${tableId}!`);
         clearCart();
+        // Xóa mã bàn khỏi bộ nhớ sau khi gọi món thành công
+        setCurrentTable(null);
         navigate('/');
       } else {
         // Quy trình đặt hàng online
@@ -62,7 +62,13 @@ const Cart = () => {
             endpoints['initiate-payment'](newOrder.id)
           );
           window.location.href = paymentRes.data.payUrl;
-        } else {
+        }
+        // [CẬP NHẬT] Xử lý khi khách chọn VNPay
+        else if (paymentMethod === 'VNPAY') {
+          const paymentRes = await authApi().post(endpoints['initiate-vnpay-payment'](newOrder.id));
+          window.location.href = paymentRes.data.paymentUrl;
+        }
+        else {
           alert('✅ Đặt hàng thành công! Cảm ơn bạn.');
           clearCart();
           navigate('/');
@@ -231,6 +237,14 @@ const Cart = () => {
                   id="paymentMomo"
                   value="MOMO"
                   checked={paymentMethod === 'MOMO'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                <Form.Check
+                  type="radio"
+                  label="💳 Thanh toán bằng VNPay"
+                  name="paymentMethod"
+                  value="VNPAY"
+                  checked={paymentMethod === 'VNPAY'}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 />
               </Form.Group>

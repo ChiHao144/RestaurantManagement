@@ -158,6 +158,20 @@ class Review(BaseModel):
         # Đảm bảo mỗi người dùng chỉ đánh giá 1 lần cho 1 món ăn
         unique_together = ('user', 'dish')
 
+class ReviewReply(BaseModel):
+    """Model Phản hồi Đánh giá"""
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='replies', verbose_name="Đánh giá gốc")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Nhân viên phản hồi")
+    content = models.TextField(verbose_name="Nội dung phản hồi")
+
+    def __str__(self):
+        return f"Phản hồi của {self.user.username} cho đánh giá #{self.review.id}"
+
+    class Meta:
+        verbose_name = "Phản hồi Đánh giá"
+        verbose_name_plural = "Các Phản hồi Đánh giá"
+        ordering = ['created_date']
+
 
 # --- BOOKING & TABLE MODELS (UPDATED) ---
 class Table(BaseModel):

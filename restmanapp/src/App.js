@@ -27,48 +27,57 @@ import OrderDetail from "./pages/manager/OrderDetail";
 import PrintableInvoice from "./pages/manager/PrintableInvoice";
 import DishDetail from "./pages/customer/DishDetail";
 import Profile from "./pages/common/Profile";
+import { TableProvider } from "./configs/TableContext";
+import ReviewManagement from "./pages/manager/ReviewManager";
+import PaymentSuccess from "./pages/customer/PaymentSuccess";
+import PaymentFailure from "./pages/customer/PaymentFailure";
 
 const App = () => {
   return (
     <UserProvider>
       <CartProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* ---- Layout cho khách hàng ---- */}
-            <Route path="/" element={<CustomerLayout />}>
-              <Route index element={<Home />} />
-              <Route path="categories/:categoryName" element={<Home />} />
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              <Route path="booking" element={<Booking />} />
-              <Route path="history-booking" element={<BookingHistory />} />
-              <Route path="cart" element={<Cart />} />
-              <Route path="order-history" element={<OrderHistory />} />
-              <Route path="dishes/:dishId" element={<DishDetail />} />
-              <Route path="profile" element={<Profile />} />
-            </Route>
+        <TableProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* ---- Layout cho khách hàng ---- */}
+              <Route path="/" element={<CustomerLayout />}>
+                <Route index element={<Home />} />
+                <Route path="categories/:categoryName" element={<Home />} />
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+                <Route path="booking" element={<Booking />} />
+                <Route path="history-booking" element={<BookingHistory />} />
+                <Route path="cart" element={<Cart />} />
+                <Route path="order-history" element={<OrderHistory />} />
+                <Route path="dishes/:dishId" element={<DishDetail />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="payment-success" element={<PaymentSuccess />} />
+                <Route path="payment-failure" element={<PaymentFailure />} />
+              </Route>
 
-            {/* ---- Layout cho manager ---- */}
-            <Route path="/manager" element={<ManagerLayout />}>
-              <Route index element={<ManagerDashboard />} />
-              <Route path="all-bookings" element={<AllBookings />} />
-              <Route path="assign/:bookingId" element={<AssignTable />} />
-              <Route path="table-management" element={<TableStatusDashboard />} />
-              <Route path="orders" element={<OrderManagement />} />
-              <Route path="orderdetails/:orderId" element={<OrderDetail />} />
-              <Route path="print-invoice" element={<PrintableInvoice />} />
-              <Route path="profile" element={<Profile />} />
-            </Route>
+              {/* ---- Layout cho manager ---- */}
+              <Route path="/manager" element={<ManagerLayout />}>
+                <Route index element={<ManagerDashboard />} />
+                <Route path="all-bookings" element={<AllBookings />} />
+                <Route path="assign/:bookingId" element={<AssignTable />} />
+                <Route path="table-management" element={<TableStatusDashboard />} />
+                <Route path="orders" element={<OrderManagement />} />
+                <Route path="orderdetails/:orderId" element={<OrderDetail />} />
+                <Route path="print-invoice" element={<PrintableInvoice />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="allreviews" element={<ReviewManagement />} />
+              </Route>
 
-            {/* ---- Layout cho waiter ---- */}
-            {/* <Route path="/waiter" element={<ManagerLayout />}>
+              {/* ---- Layout cho waiter ---- */}
+              {/* <Route path="/waiter" element={<ManagerLayout />}>
               <Route path="table-management" element={<TableStatusDashboard />} />
             </Route> */}
 
-            {/* 404 fallback */}
-            <Route path="*" element={<h1>404 - Không tìm thấy trang</h1>} />
-          </Routes>
-        </BrowserRouter>
+              {/* 404 fallback */}
+              <Route path="*" element={<h1>404 - Không tìm thấy trang</h1>} />
+            </Routes>
+          </BrowserRouter>
+        </TableProvider>
       </CartProvider>
     </UserProvider>
   );

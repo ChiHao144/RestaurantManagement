@@ -37,6 +37,9 @@ const ManagerHeader = () => {
             <LinkContainer to="/manager/orders">
               <Nav.Link>Quản lý hóa đơn</Nav.Link>
             </LinkContainer>
+            <LinkContainer to="/manager/allreviews">
+              <Nav.Link>Quản lý đánh giá</Nav.Link>
+            </LinkContainer>
           </Nav>
 
           <Nav>

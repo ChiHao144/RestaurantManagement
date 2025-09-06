@@ -1,29 +1,30 @@
 import json
+import time
+import urllib
 import uuid
+
+import pytz
 import requests
 import hmac
 import hashlib
 import logging
 from datetime import datetime
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Q, Count, Sum
 from django.db.models.functions import TruncMonth, TruncDay
+from django.shortcuts import redirect
+from django.template.loader import render_to_string
 from rest_framework import viewsets, generics, parsers, permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from .models import Category, Dish, User, Review, Table, Booking, Order, OrderDetail, BookingDetail
+from .models import Category, Dish, User, Review, Table, Booking, Order, OrderDetail, BookingDetail, ReviewReply
 from . import serializers, paginators, perms
-
-# Cấu hình MoMo - BẠN NÊN ĐẶT CÁC GIÁ TRỊ NÀY TRONG settings.py
-MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
-MOMO_PARTNER_CODE = "MOMO"  # Thay bằng Partner Code của bạn
-MOMO_ACCESS_KEY = "F8BBA842ECF85"  # Thay bằng Access Key của bạn
-MOMO_SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz"  # Thay bằng Secret Key của bạn
-MOMO_IPN_URL = "https://localhost:8000/momo/"  # Thay bằng URL IPN thật của bạn
-MOMO_REDIRECT_URL = "https://localhost:8000/momo/"  # Thay bằng URL Redirect thật của bạn
+from .vnpay_utils import Vnpay
 
 
 class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -91,6 +92,40 @@ class ReviewViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateAP
     serializer_class = serializers.ReviewSerializer
     permission_classes = [perms.IsReviewOwner]
 
+    @action(methods=['post'], detail=True, url_path='reply', permission_classes=[perms.IsManagerUser])
+    def reply(self, request, pk=None):
+        """
+        API cho phép nhân viên (STAFF, MANAGER, ADMIN) phản hồi lại một đánh giá.
+        Input: { "content": "Cảm ơn bạn đã góp ý..." }
+        """
+        try:
+            review = self.get_object()
+            content = request.data.get('content')
+            if not content:
+                return Response({'error': 'Nội dung phản hồi không được để trống.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Tạo phản hồi mới, tự động gán nhân viên đang đăng nhập
+            reply = ReviewReply.objects.create(
+                review=review,
+                user=request.user,
+                content=content
+            )
+
+            # Dùng ReviewReplySerializer để trả về dữ liệu phản hồi
+            return Response(serializers.ReviewReplySerializer(reply).data, status=status.HTTP_201_CREATED)
+        except Review.DoesNotExist:
+            return Response({'error': 'Đánh giá không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AllReviewsViewSet(viewsets.ViewSet, generics.ListAPIView):
+    """
+    [MỚI] API để lấy tất cả các đánh giá cho trang quản lý.
+    """
+    # Lấy tất cả đánh giá, sắp xếp mới nhất lên đầu
+    queryset = Review.objects.select_related('user', 'dish').prefetch_related('replies__user').order_by('-created_date')
+    serializer_class = serializers.ReviewSerializer
+    permission_classes = [perms.IsManagerUser]
+
 
 class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
     queryset = Table.objects.filter(is_active=True)
@@ -157,7 +192,7 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
     def get_queryset(self):
         user = self.request.user
         # Giả sử WAITER là một vai trò hợp lệ trong model User của bạn
-        if user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.WAITER]:
+        if user.role in [User.Role.MANAGER]:
             return self.queryset
         return self.queryset.filter(user=user)
 
@@ -173,17 +208,53 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
                                 status=status.HTTP_400_BAD_REQUEST)
 
             details_data = request.data.get('details')
-            if not isinstance(details_data, list):
-                return Response({'error': 'Dữ liệu "details" phải là một mảng.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not isinstance(details_data, list) or not details_data:
+                return Response({'error': 'Dữ liệu "details" phải là một mảng và không được rỗng.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            assigned_tables_info = []  # Biến để lưu thông tin bàn cho email
 
             with transaction.atomic():
                 booking.details.all().delete()
                 for detail in details_data:
                     table = Table.objects.get(pk=detail.get('table_id'))
                     BookingDetail.objects.create(booking=booking, table=table, **detail)
+                    assigned_tables_info.append(table)
 
-            booking.status = Booking.BookingStatus.CONFIRMED
+            booking.status = booking.BookingStatus.CONFIRMED
             booking.save()
+
+            # === BẮT ĐẦU LOGIC GỬI EMAIL ===
+            try:
+                customer_email = booking.user.email
+                if customer_email:
+                    subject = f"Xác nhận đặt bàn thành công tại Nhà hàng Tâm An - Mã #{booking.id}"
+
+                    context = {
+                        'user': booking.user,
+                        'booking': booking,
+                        'tables': assigned_tables_info,
+                    }
+
+                    # Render email từ một file template HTML để email đẹp hơn
+                    html_message = render_to_string('emails/booking_confirmation.html', context)
+
+                    # Tạo phiên bản văn bản thuần túy dự phòng
+                    plain_message = f"Chào {booking.user.first_name}, đơn đặt bàn #{booking.id} của bạn đã được xác nhận thành công."
+
+                    send_mail(
+                        subject=subject,
+                        message=plain_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[customer_email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+            except Exception as e:
+                # Ghi lại lỗi nếu gửi mail thất bại, nhưng không làm hỏng cả quy trình
+                logging.error(f"Lỗi gửi email xác nhận cho đơn #{booking.id}: {e}")
+            # === KẾT THÚC LOGIC GỬI EMAIL ===
+
             return Response(self.get_serializer(booking).data)
         except (Booking.DoesNotExist, Table.DoesNotExist):
             return Response({'error': 'Đơn đặt bàn hoặc bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
@@ -308,19 +379,19 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
             order_id = f"{order.id}_{uuid.uuid4()}"
             request_id = str(uuid.uuid4())
             raw_signature_str = (
-                f"accessKey={MOMO_ACCESS_KEY}&amount={amount}&extraData=&ipnUrl={MOMO_IPN_URL}"
-                f"&orderId={order_id}&orderInfo={order_info}&partnerCode={MOMO_PARTNER_CODE}"
-                f"&redirectUrl={MOMO_REDIRECT_URL}&requestId={request_id}&requestType=payWithATM"
+                f"accessKey={settings.MOMO_ACCESS_KEY}&amount={amount}&extraData=&ipnUrl={settings.MOMO_IPN_URL}"
+                f"&orderId={order_id}&orderInfo={order_info}&partnerCode={settings.MOMO_PARTNER_CODE}"
+                f"&redirectUrl={settings.MOMO_REDIRECT_URL}&requestId={request_id}&requestType=payWithATM"
             )
-            signature = hmac.new(bytes(MOMO_SECRET_KEY, 'ascii'), bytes(raw_signature_str, 'ascii'),
+            signature = hmac.new(bytes(settings.MOMO_SECRET_KEY, 'ascii'), bytes(raw_signature_str, 'ascii'),
                                  hashlib.sha256).hexdigest()
             payload = {
-                'partnerCode': MOMO_PARTNER_CODE, 'requestId': request_id, 'amount': amount,
-                'orderId': order_id, 'orderInfo': order_info, 'redirectUrl': MOMO_REDIRECT_URL,
-                'ipnUrl': MOMO_IPN_URL, 'lang': "vi", 'extraData': "",
+                'partnerCode': settings.MOMO_PARTNER_CODE, 'requestId': request_id, 'amount': amount,
+                'orderId': order_id, 'orderInfo': order_info, 'redirectUrl': settings.MOMO_REDIRECT_URL,
+                'ipnUrl': settings.MOMO_IPN_URL, 'lang': "vi", 'extraData': "",
                 'requestType': "payWithATM", 'signature': signature
             }
-            response = requests.post(MOMO_ENDPOINT, data=json.dumps(payload),
+            response = requests.post(settings.MOMO_ENDPOINT, data=json.dumps(payload),
                                      headers={'Content-Type': 'application/json'})
             response_data = response.json()
             if response_data.get("resultCode") == 0:
@@ -353,6 +424,131 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
             # Bắt các lỗi validation từ serializer
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(methods=['post'], detail=True, url_path='initiate-vnpay-payment')
+    def initiate_vnpay_payment(self, request, pk=None):
+        """
+        Tạo URL thanh toán VNPay bằng cách sử dụng Vnpay utility class.
+        """
+        try:
+            order = self.get_object()
+            if order.status != 'PENDING':
+                return Response({'error': 'Chỉ có thể thanh toán cho hóa đơn đang chờ.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # 1. Khởi tạo đối tượng Vnpay
+            vnp = Vnpay()
+
+            ip_addr = request.META.get('REMOTE_ADDR', '127.0.0.1')
+            vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+            create_date = datetime.now(vietnam_tz)
+
+            # 2. Gán dữ liệu vào request_data của đối tượng Vnpay
+            vnp.request_data = {
+                "vnp_Version": "2.1.0",
+                "vnp_Command": "pay",
+                "vnp_TmnCode": settings.VNPAY_TMNCODE,
+                "vnp_Amount": str(int(order.total_amount) * 100),
+                "vnp_CreateDate": create_date.strftime('%Y%m%d%H%M%S'),
+                "vnp_CurrCode": "VND",
+                "vnp_IpAddr": ip_addr,
+                "vnp_Locale": "vn",
+                "vnp_OrderInfo": f"Thanh toan don hang {order.id}",
+                "vnp_OrderType": "other",
+                "vnp_ReturnUrl": settings.VNPAY_RETURN_URL,
+                "vnp_TxnRef": f"{order.id}_{uuid.uuid4()}"
+            }
+
+            print("CHECK IPN URL:", settings.VNPAY_IPN_URL)
+            # Và cả Return URL nữa
+            print("CHECK RETURN URL:", settings.VNPAY_RETURN_URL)
+
+            # 3. Gọi hàm để lấy URL thanh toán
+            payment_url = vnp.get_payment_url()
+
+            return Response({'paymentUrl': payment_url}, status=status.HTTP_200_OK)
+
+        except Order.DoesNotExist:
+            return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logging.error(f"Lỗi khi tạo thanh toán VNPay: {e}")
+            return Response({'error': 'Đã có lỗi xảy ra phía server.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class VNPayIPNViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+
+    def list(self, request):
+        input_data = request.query_params.dict()
+        if not input_data:
+            return Response({"RspCode": "99", "Message": "Invalid request"})
+
+        vnp = Vnpay()
+
+        # 1. Xác thực chữ ký bằng hàm validate_response từ trợ lý
+        if vnp.validate_response(input_data):
+            response_code = input_data.get("vnp_ResponseCode")
+            txn_ref = input_data.get("vnp_TxnRef")
+            order_id = txn_ref.split("_")[0]
+
+            try:
+                order = Order.objects.get(id=order_id)
+                if order.status == 'PENDING':
+                    if response_code == "00":  # Thanh toán thành công
+                        order.status = "COMPLETED"
+                        order.payment_method = "VNPAY"
+                        order.save()
+                    else:  # Thanh toán thất bại
+                        order.status = "CANCELLED"
+                        order.save()
+
+                return Response({"RspCode": "00", "Message": "Confirm Success"})
+            except Order.DoesNotExist:
+                return Response({"RspCode": "01", "Message": "Order not found"})
+        else:
+            logging.warning("VNPay IPN: Invalid signature.")
+            return Response({"RspCode": "97", "Message": "Invalid signature"})
+
+
+# [MỚI] ViewSet để xử lý khi khách hàng được chuyển hướng về (Return URL)
+class VNPayReturnViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+
+    def list(self, request):
+        input_data = request.query_params.dict()
+        if not input_data:
+            return redirect("http://localhost:3000/payment-failure")  # Chuyển về trang lỗi
+
+        vnp_secure_hash = input_data.pop("vnp_SecureHash", None)
+        if "vnp_SecureHashType" in input_data:
+            input_data.pop("vnp_SecureHashType")
+
+        sorted_data = sorted(input_data.items())
+
+        query_string = ""
+        i = 0
+        for key, val in sorted_data:
+            if i == 1:
+                query_string += "&" + key + '=' + urllib.parse.quote_plus(str(val))
+            else:
+                i = 1
+                query_string = key + '=' + urllib.parse.quote_plus(str(val))
+
+        secret_key_bytes = settings.VNPAY_HASH_SECRET_KEY.encode()
+        query_string_bytes = query_string.encode()
+        generated_hash = hmac.new(secret_key_bytes, query_string_bytes, hashlib.sha512).hexdigest()
+
+        if generated_hash == vnp_secure_hash:
+            # Chữ ký hợp lệ, kiểm tra kết quả giao dịch
+            if input_data.get("vnp_ResponseCode") == "00":
+                # Chuyển hướng đến trang thành công ở frontend
+                return redirect("http://localhost:3000/payment-success")
+            else:
+                # Chuyển hướng đến trang thất bại ở frontend
+                return redirect("http://localhost:3000/payment-failure")
+        else:
+            # Chữ ký không hợp lệ, chuyển hướng đến trang lỗi
+            logging.warning("VNPay Return URL: Invalid signature.")
+            return redirect("http://localhost:3000/payment-failure")
 
 class MomoIPNViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]

@@ -1,7 +1,7 @@
 import axios from "axios";
 import cookie from 'react-cookies';
 
-const BASE_URL = "http://192.168.1.105:8000/";
+const BASE_URL = "http://192.168.1.102:8000/";
 
 export const endpoints = {
     'categories': '/categories/',
@@ -25,9 +25,12 @@ export const endpoints = {
     'dish-detail': (dishId) => `/dishes/${dishId}/`,
     'dish-reviews': (dishId) => `/dishes/${dishId}/reviews/`,
     'add-review': (dishId) => `/dishes/${dishId}/add-review/`,
+    'add-reply': (reviewId) => `/reviews/${reviewId}/reply/`,
+    'all-reviews': '/allreviews/',
     'update-review': (reviewId) => `/reviews/${reviewId}/`,
     'delete-review': (reviewId) => `/reviews/${reviewId}/`,
     'update-order': (orderId) => `/orders/${orderId}/update-order/`,
+    'initiate-vnpay-payment': (orderId) => `/orders/${orderId}/initiate-vnpay-payment/`,
 }
 
 export const authApi = () => {
