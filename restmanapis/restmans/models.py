@@ -200,6 +200,7 @@ class Booking(BaseModel):
         CONFIRMED = 'CONFIRMED', 'Đã xác nhận'
         PENDING = 'PENDING', 'Đang chờ'
         CANCELLED = 'CANCELLED', 'Đã hủy'
+        COMPLETED = 'COMPLETED', 'Đã hoàn thành'
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings', verbose_name="Người dùng")
     booking_time = models.DateTimeField(verbose_name="Thời gian tạo đơn")  # Thời gian khách hàng tạo đơn

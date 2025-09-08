@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Container, Form, Button, Alert, Spinner, Card } from 'react-bootstrap';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import Apis, { authApi, endpoints } from '../../configs/Apis';
 import cookie from "react-cookies";
 import { UserContext } from '../../configs/UserContext';
@@ -32,14 +32,14 @@ const Login = () => {
 
         } catch (err) {
             console.error("Lỗi đăng nhập:", err);
-            setError("⚠️ Tên đăng nhập hoặc mật khẩu không chính xác.");
+            setError("Tên đăng nhập hoặc mật khẩu không chính xác.");
         } finally {
             setLoading(false);
         }
     };
 
     if (user) {
-        if (["STAFF", "MANAGER", "ADMIN"].includes(user.role)) {
+        if (["WAITER", "MANAGER", "ADMIN"].includes(user.role)) {
             return <Navigate to="/manager" />;
         }
         return <Navigate to="/" />;
@@ -48,13 +48,13 @@ const Login = () => {
     return (
         <Container className="d-flex justify-content-center align-items-center my-5">
             <Card className="p-4 shadow-lg" style={{
-                maxWidth: '500px', 
+                maxWidth: '500px',
                 width: '100%',
                 borderRadius: '15px',
                 background: 'linear-gradient(135deg, #ff4d4d, #ffd11a)'
             }}>
                 <h2 className="text-center mb-4 fw-bold" style={{ textShadow: '1px 1px 3px #000', color: '#fff' }}>
-                    🔐 ĐĂNG NHẬP
+                    ĐĂNG NHẬP
                 </h2>
 
                 {error && <Alert variant="danger">{error}</Alert>}
@@ -99,6 +99,10 @@ const Login = () => {
                         </Button>
                     </div>
                 </Form>
+
+                <div className="text-end mt-2">
+                    <Link to="/forgot-password">Quên mật khẩu?</Link>
+                </div>
 
                 <p className="text-center mt-3 fw-bold" style={{ color: '#fff', textShadow: '1px 1px 2px #000' }}>
                     Chưa có tài khoản? <a href="/register" style={{ color: '#000', fontWeight: 'bold' }}>Đăng ký ngay</a>

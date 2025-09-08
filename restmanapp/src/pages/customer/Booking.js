@@ -43,7 +43,7 @@ const Booking = () => {
             setSubmitSuccess(true);
         } catch (err) {
             console.error("Lỗi khi đặt bàn:", err);
-            setSubmitError("❌ Không thể gửi yêu cầu đặt bàn. Vui lòng thử lại.");
+            setSubmitError("Không thể gửi yêu cầu đặt bàn. Vui lòng thử lại.");
         } finally {
             setSubmitting(false);
         }
@@ -57,7 +57,7 @@ const Booking = () => {
         return (
             <Container className="my-5 text-center">
                 <Alert variant="success" className="shadow-sm rounded-4 p-4">
-                    <h4 className="fw-bold text-success">🎉 Yêu cầu đặt bàn thành công!</h4>
+                    <h4 className="fw-bold text-success">Yêu cầu đặt bàn thành công!</h4>
                     <p>Yêu cầu của bạn đã được gửi đi và đang chờ xác nhận.  
                     Nhân viên của chúng tôi sẽ sớm liên hệ với bạn. Cảm ơn bạn!</p>
                     <Button
@@ -78,7 +78,7 @@ const Booking = () => {
         <Container className="d-flex justify-content-center align-items-center my-5">
             <Card className="p-4 shadow-lg rounded-4" style={{ maxWidth: '600px', width: '100%' }}>
                 <h2 className="text-center mb-4 fw-bold" style={{ color: "#8B0000" }}>
-                    📅 ĐẶT BÀN TRƯỚC
+                    ĐẶT BÀN TRƯỚC
                 </h2>
 
                 {submitError && <Alert variant="danger" className="fw-semibold">{submitError}</Alert>}

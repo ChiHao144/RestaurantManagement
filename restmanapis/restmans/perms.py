@@ -16,3 +16,10 @@ class IsManagerUser(permissions.IsAuthenticated):
 class IsAdminUser(permissions.IsAuthenticated):
     def has_permission(self, request, view):
         return request.user.role == User.Role.ADMIN
+
+class OrPermission(permissions.BasePermission):
+    def __init__(self, *perms):
+        self.perms = perms
+
+    def has_permission(self, request, view):
+        return any(perm().has_permission(request, view) for perm in self.perms)

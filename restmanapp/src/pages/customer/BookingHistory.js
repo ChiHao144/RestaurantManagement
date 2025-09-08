@@ -76,7 +76,9 @@ const BookingHistory = () => {
             case 'PENDING':
                 return { bg: 'warning', text: 'dark', label: 'Đang chờ' };
             case 'CONFIRMED':
-                return { bg: 'success', text: 'white', label: 'Đã xác nhận' };
+                return { bg: 'primary', text: 'white', label: 'Đã xác nhận' };
+            case 'COMPLETED':
+                return { bg: 'success', text: 'white', label: 'Đã hoàn thành' };
             case 'CANCELLED':
                 return { bg: 'secondary', text: 'white', label: 'Đã hủy' };
             default:

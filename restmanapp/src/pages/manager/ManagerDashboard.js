@@ -34,7 +34,7 @@ const ManagerDashboard = () => {
     }, [user]);
 
     // Kiểm tra quyền truy cập
-    if (!user || !['STAFF', 'MANAGER', 'ADMIN'].includes(user.role)) {
+    if (!user || !['WAITER', 'MANAGER', 'ADMIN'].includes(user.role)) {
         return <Navigate to="/" />;
     }
 

@@ -11,12 +11,15 @@ import logging
 from datetime import datetime
 
 from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Q, Count, Sum
 from django.db.models.functions import TruncMonth, TruncDay
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import viewsets, generics, parsers, permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -24,6 +27,7 @@ from rest_framework.response import Response
 
 from .models import Category, Dish, User, Review, Table, Booking, Order, OrderDetail, BookingDetail, ReviewReply
 from . import serializers, paginators, perms
+from .perms import OrPermission
 from .vnpay_utils import Vnpay
 
 
@@ -92,7 +96,7 @@ class ReviewViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateAP
     serializer_class = serializers.ReviewSerializer
     permission_classes = [perms.IsReviewOwner]
 
-    @action(methods=['post'], detail=True, url_path='reply', permission_classes=[perms.IsManagerUser])
+    @action(methods=['post'], detail=True, url_path='reply', permission_classes=[OrPermission(perms.IsManagerUser, perms.IsWaiterUser)])
     def reply(self, request, pk=None):
         """
         API cho phép nhân viên (STAFF, MANAGER, ADMIN) phản hồi lại một đánh giá.
@@ -124,7 +128,7 @@ class AllReviewsViewSet(viewsets.ViewSet, generics.ListAPIView):
     # Lấy tất cả đánh giá, sắp xếp mới nhất lên đầu
     queryset = Review.objects.select_related('user', 'dish').prefetch_related('replies__user').order_by('-created_date')
     serializer_class = serializers.ReviewSerializer
-    permission_classes = [perms.IsManagerUser]
+    permission_classes = [lambda: OrPermission(perms.IsManagerUser, perms.IsWaiterUser)]
 
 
 class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -155,7 +159,7 @@ class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
         available_tables = Table.objects.filter(capacity__gte=guests).exclude(id__in=booked_table_ids)
         return Response(self.get_serializer(available_tables, many=True).data)
 
-    @action(methods=['get'], detail=False, url_path='statuses', permission_classes=[perms.IsManagerUser])
+    @action(methods=['get'], detail=False, url_path='statuses', permission_classes=[OrPermission(perms.IsManagerUser, perms.IsWaiterUser)])
     def statuses(self, request):
         """
         API để lấy danh sách tất cả các bàn và TRẠNG THÁI HIỆN TẠI của chúng.
@@ -163,7 +167,7 @@ class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
         tables = Table.objects.all().order_by('table_number')
         return Response(self.get_serializer(tables, many=True).data)
 
-    @action(methods=['patch'], detail=True, url_path='update-status', permission_classes=[perms.IsManagerUser])
+    @action(methods=['patch'], detail=True, url_path='update-status', permission_classes=[OrPermission(perms.IsManagerUser, perms.IsWaiterUser)])
     def update_status(self, request, pk=None):
         """
         API để nhân viên CẬP NHẬT TRẠNG THÁI của một bàn cụ thể.
@@ -192,7 +196,12 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
     def get_queryset(self):
         user = self.request.user
         # Giả sử WAITER là một vai trò hợp lệ trong model User của bạn
-        if user.role in [User.Role.MANAGER]:
+        allowed_roles = [
+            User.Role.MANAGER,
+            User.Role.ADMIN,
+            User.Role.WAITER,
+        ]
+        if user.role in allowed_roles:
             return self.queryset
         return self.queryset.filter(user=user)
 
@@ -274,7 +283,7 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
             user = request.user
 
             # Chỉ chủ đơn hoặc nhân viên mới có quyền hủy
-            if booking.user != user and not user.is_staff:
+            if booking.user != user:
                 return Response({'error': 'Bạn không có quyền thực hiện hành động này.'},
                                 status=status.HTTP_403_FORBIDDEN)
 
@@ -285,6 +294,27 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
             else:
                 return Response({'error': 'Không thể hủy đơn đặt bàn đã hoàn thành hoặc đã bị hủy.'},
                                 status=status.HTTP_400_BAD_REQUEST)
+        except Booking.DoesNotExist:
+            return Response({'error': 'Đơn đặt bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(methods=['patch'], detail=True, url_path='complete', permission_classes=[perms.IsManagerUser])
+    def complete_booking(self, request, pk=None):
+        """
+        [MỚI] API để nhân viên đánh dấu một đơn đặt bàn là đã hoàn thành.
+        """
+        try:
+            booking = self.get_object()
+
+            # Chỉ có thể hoàn thành các đơn đặt bàn đã được xác nhận
+            if booking.status == 'CONFIRMED':
+                booking.status = 'COMPLETED'
+                booking.save()
+                return Response(self.get_serializer(booking).data, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {'error': 'Chỉ có thể hoàn thành các đơn đặt bàn đã được xác nhận.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         except Booking.DoesNotExist:
             return Response({'error': 'Đơn đặt bàn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -574,3 +604,201 @@ class MomoIPNViewSet(viewsets.ViewSet):
         else:
             logging.warning(f"MoMo IPN received failed status for order {original_order_id}: {data.get('message')}")
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MomoReturnViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+
+    def list(self, request):
+        """
+        Xử lý request GET từ MoMo, sau đó chuyển hướng đến trang frontend phù hợp.
+        """
+        result_code = request.query_params.get('resultCode')
+
+        # Kiểm tra kết quả giao dịch
+        if result_code == '0':
+            # Chuyển hướng đến trang thành công ở frontend
+            return redirect("http://localhost:3000/payment-success")
+        else:
+            # Chuyển hướng đến trang thất bại ở frontend
+            return redirect("http://localhost:3000/payment-failure")
+
+
+class StatsViewSet(viewsets.ViewSet):
+    """
+    ViewSet này cung cấp các API để lấy dữ liệu thống kê.
+    Chỉ có Quản lý và Admin mới có quyền truy cập.
+    """
+    permission_classes = [perms.IsManagerUser]
+
+    @action(methods=['get'], detail=False, url_path='revenue')
+    def revenue_stats(self, request):
+        """
+        Thống kê doanh thu theo từng tháng trong một năm cụ thể.
+        Ví dụ: /stats/revenue/?year=2025
+        """
+        try:
+            # Lấy năm từ query param, mặc định là năm hiện tại
+            year = request.query_params.get('year', datetime.now().year)
+
+            # Truy vấn các hóa đơn đã hoàn thành, nhóm theo tháng và tính tổng doanh thu
+            stats = Order.objects.filter(
+                created_date__year=year,
+                status='COMPLETED'
+            ).annotate(
+                month=TruncMonth('created_date')
+            ).values('month').annotate(
+                total=Sum('total_amount')
+            ).order_by('month')
+
+            return Response(stats)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(methods=['get'], detail=False, url_path='dish-popularity')
+    def dish_popularity_stats(self, request):
+        """
+        Thống kê tần suất gọi món của các món ăn.
+        """
+        stats = Dish.objects.annotate(
+            order_count=Count('order_details')  # Đếm số lần xuất hiện trong chi tiết hóa đơn
+        ).filter(order_count__gt=0).values('id', 'name', 'order_count').order_by('-order_count')
+
+        return Response(stats)
+
+
+#CHATBOXAI
+class ChatbotViewSet(viewsets.ViewSet):
+    """
+    ViewSet này cung cấp một API để người dùng có thể trò chuyện với AI
+    để được tư vấn về món ăn.
+    """
+    # Bất kỳ ai cũng có thể hỏi, không cần đăng nhập
+    permission_classes = [permissions.AllowAny]
+
+    @action(methods=['post'], detail=False, url_path='ask')
+    def ask(self, request):
+        """
+        Nhận câu hỏi từ người dùng, gửi đến Gemini và trả về câu trả lời.
+        Input: { "message": "Tôi muốn ăn gì đó cay cay." }
+        """
+        user_message = request.data.get('message')
+        if not user_message:
+            return Response({'error': 'Vui lòng nhập câu hỏi của bạn.'}, status=400)
+
+        try:
+            # 1. Lấy toàn bộ thực đơn từ database để làm "kiến thức" cho AI
+            all_dishes = Dish.objects.filter(is_active=True)
+            menu_context = "\n".join(
+                [f"- Tên món: {d.name}, Mô tả: {d.description or 'Không có'}, Giá: {d.price} VND" for d in all_dishes]
+            )
+
+            # 2. Tạo "chỉ thị hệ thống" để hướng dẫn AI
+            system_prompt = (
+                "Bạn là một nhân viên tư vấn món ăn thân thiện và chuyên nghiệp của nhà hàng Tâm An. "
+                "Kiến thức duy nhất của bạn là danh sách thực đơn được cung cấp dưới đây. "
+                "Nhiệm vụ của bạn là dựa vào yêu cầu của khách hàng và gợi ý những món ăn phù hợp nhất từ thực đơn. "
+                "Hãy trả lời một cách tự nhiên, ngắn gọn và luôn lịch sự. "
+                "Nếu khách hàng hỏi những vấn đề không liên quan đến thực đơn, hãy nhẹ nhàng từ chối và hướng họ quay lại chủ đề món ăn. "
+                "Luôn trả lời bằng tiếng Việt."
+                f"\n\n--- THỰC ĐƠN ---\n{menu_context}"
+            )
+
+            # 3. Gửi yêu cầu đến Google Gemini API
+            api_key = getattr(settings, 'GEMINI_API_KEY', None)
+            if not api_key:
+                return Response({'error': 'Chưa cấu hình API Key cho dịch vụ AI.'}, status=500)
+
+            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key={api_key}"
+
+            payload = {
+                "systemInstruction": {"parts": [{"text": system_prompt}]},
+                "contents": [{"parts": [{"text": user_message}]}],
+            }
+
+            response = requests.post(api_url, json=payload, headers={'Content-Type': 'application/json'})
+            response.raise_for_status()
+
+            # 4. Trích xuất và trả về câu trả lời của AI
+            result_json = response.json()
+            ai_reply = result_json['candidates'][0]['content']['parts'][0]['text']
+
+            return Response({'reply': ai_reply})
+
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Lỗi giao tiếp với Gemini API: {e}")
+            return Response({'error': 'Dịch vụ tư vấn AI đang tạm thời gián đoạn.'}, status=503)
+        except Exception as e:
+            logging.error(f"Lỗi xử lý chatbot: {e}")
+            return Response({'error': 'Đã có lỗi xảy ra phía server.'}, status=500)
+
+
+class PasswordResetViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+
+    @action(methods=['post'], detail=False, url_path='request-reset')
+    def request_password_reset(self, request):
+        """
+        Nhận email từ người dùng và gửi link đặt lại mật khẩu.
+        Input: { "email": "user@example.com" }
+        """
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Vui lòng cung cấp email.'}, status=400)
+
+        try:
+            user = User.objects.get(email=email)
+
+            # Tạo token và uid để gửi trong email
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            # Tạo đường link đến trang frontend
+            reset_link = f"http://localhost:3000/reset-password/{uid}/{token}/"
+
+            # Gửi email
+            subject = "Yêu cầu đặt lại mật khẩu tại Nhà hàng Tâm An"
+            context = {'reset_link': reset_link, 'user': user}
+            html_message = render_to_string('emails/password_reset_email.html', context)
+
+            send_mail(
+                subject,
+                f"Vui lòng nhấp vào link sau để đặt lại mật khẩu của bạn: {reset_link}",
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                html_message=html_message
+            )
+        except User.DoesNotExist:
+            # Không báo lỗi để tránh kẻ xấu dò email, chỉ ghi log
+            logging.warning(f"Yêu cầu đặt lại mật khẩu cho email không tồn tại: {email}")
+        except Exception as e:
+            logging.error(f"Lỗi khi gửi email đặt lại mật khẩu: {e}")
+
+        # Luôn trả về thành công để bảo mật
+        return Response({'message': 'Nếu email của bạn tồn tại trong hệ thống, bạn sẽ nhận được một email hướng dẫn.'})
+
+    @action(methods=['post'], detail=False, url_path='confirm')
+    def confirm_password_reset(self, request):
+        """
+        Nhận token, uid và mật khẩu mới để hoàn tất việc đặt lại.
+        Input: { "uid": "...", "token": "...", "password": "..." }
+        """
+        uid = request.data.get('uid')
+        token = request.data.get('token')
+        password = request.data.get('password')
+
+        if not all([uid, token, password]):
+            return Response({'error': 'Dữ liệu không đầy đủ.'}, status=400)
+
+        try:
+            user_id = urlsafe_base64_decode(uid).decode()
+            user = User.objects.get(pk=user_id)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            user.set_password(password)
+            user.save()
+            return Response({'message': 'Đặt lại mật khẩu thành công!'})
+        else:
+            return Response({'error': 'Đường link không hợp lệ hoặc đã hết hạn.'}, status=400)

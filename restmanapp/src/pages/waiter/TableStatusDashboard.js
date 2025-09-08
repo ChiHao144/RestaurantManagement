@@ -39,7 +39,7 @@ const TableStatusDashboard = () => {
 
     // Tải dữ liệu khi component được mount
     useEffect(() => {
-        if (user && ['STAFF', 'MANAGER', 'ADMIN'].includes(user.role)) {
+        if (user && ['WAITER', 'MANAGER', 'ADMIN'].includes(user.role)) {
             loadTables();
         } else {
             setError("Bạn không có quyền truy cập trang này.");

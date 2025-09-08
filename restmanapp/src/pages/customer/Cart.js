@@ -4,18 +4,18 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Apis, { authApi, endpoints } from '../../configs/Apis';
 import { UserContext } from '../../configs/UserContext';
 import { CartContext } from '../../configs/CartContext';
-import { TableContext } from '../../configs/TableContext'; // [MỚI] Import TableContext
+import { TableContext } from '../../configs/TableContext'; 
 
 const Cart = () => {
   const { cart, updateQuantity, clearCart } = useContext(CartContext);
   const { user } = useContext(UserContext);
-  const { tableId, setCurrentTable } = useContext(TableContext); // [MỚI] Sử dụng TableContext
+  const { tableId, setCurrentTable } = useContext(TableContext); 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [searchParams] = useSearchParams();
 
-  // [MỚI] Logic thông minh để lưu mã bàn vào "bộ nhớ"
+  
   useEffect(() => {
     const tableIdFromUrl = searchParams.get('table');
     if (tableIdFromUrl) {
@@ -36,20 +36,17 @@ const Cart = () => {
         quantity: item.quantity,
       }));
 
-      // [SỬA LỖI] Luôn kiểm tra mã bàn từ "bộ nhớ" (TableContext)
+    
       if (tableId) {
-        // Quy trình gọi món tại bàn
         await Apis.post(endpoints['place-order-at-table'], {
           table_id: tableId,
           cart: cartData,
         });
-        alert(`✅ Gọi món thành công cho Bàn ${tableId}!`);
+        alert(`Gọi món thành công cho Bàn ${tableId}!`);
         clearCart();
-        // Xóa mã bàn khỏi bộ nhớ sau khi gọi món thành công
         setCurrentTable(null);
         navigate('/');
       } else {
-        // Quy trình đặt hàng online
         const orderData = {
           payment_method: paymentMethod,
           cart: cartData,
@@ -63,20 +60,19 @@ const Cart = () => {
           );
           window.location.href = paymentRes.data.payUrl;
         }
-        // [CẬP NHẬT] Xử lý khi khách chọn VNPay
         else if (paymentMethod === 'VNPAY') {
           const paymentRes = await authApi().post(endpoints['initiate-vnpay-payment'](newOrder.id));
           window.location.href = paymentRes.data.paymentUrl;
         }
         else {
-          alert('✅ Đặt hàng thành công! Cảm ơn bạn.');
+          alert('Đặt hàng thành công! Cảm ơn bạn.');
           clearCart();
           navigate('/');
         }
       }
     } catch (err) {
       console.error('Lỗi khi xử lý đơn hàng:', err);
-      alert('❌ Đã xảy ra lỗi. Vui lòng thử lại.');
+      alert('Đã xảy ra lỗi. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -86,7 +82,7 @@ const Cart = () => {
     return (
       <Container className="my-5 text-center">
         <Alert variant="info">
-          <h4>🛒 Giỏ hàng của bạn đang trống</h4>
+          <h4>Giỏ hàng của bạn đang trống</h4>
           <p>Hãy khám phá thực đơn và chọn cho mình những món ăn ngon nhất nhé!</p>
           <Link to="/">
             <Button variant="dark">Quay lại thực đơn</Button>
@@ -107,7 +103,7 @@ const Cart = () => {
             onClick={placeOrder}
             disabled={loading}
           >
-            {loading ? 'Đang xử lý...' : `🍲 Gọi món cho Bàn ${tableId}`}
+            {loading ? 'Đang xử lý...' : `Gọi món cho Bàn ${tableId}`}
           </Button>
         </div>
       );
@@ -122,7 +118,7 @@ const Cart = () => {
             onClick={placeOrder}
             disabled={loading}
           >
-            {loading ? 'Đang xử lý...' : '🛍️ Tiến hành đặt hàng'}
+            {loading ? 'Đang xử lý...' : 'Tiến hành đặt hàng'}
           </Button>
         </div>
       );
@@ -138,7 +134,7 @@ const Cart = () => {
   return (
     <Container className="my-5">
       <h1 className="text-center text-danger mb-4 fw-bold">
-        {tableId ? `🍽️ GỌI MÓN TẠI BÀN ${tableId}` : '🛒 GIỎ HÀNG CỦA BẠN'}
+        {tableId ? `GỌI MÓN TẠI BÀN ${tableId}` : 'GIỎ HÀNG CỦA BẠN'}
       </h1>
 
       <Row>
@@ -223,7 +219,7 @@ const Cart = () => {
                 </Form.Label>
                 <Form.Check
                   type="radio"
-                  label="💵 Thanh toán khi nhận hàng (COD)"
+                  label="Thanh toán khi nhận hàng (COD)"
                   name="paymentMethod"
                   id="paymentCash"
                   value="CASH"
@@ -232,7 +228,7 @@ const Cart = () => {
                 />
                 <Form.Check
                   type="radio"
-                  label="📱 Thanh toán bằng Ví MoMo"
+                  label="Thanh toán bằng Ví MoMo"
                   name="paymentMethod"
                   id="paymentMomo"
                   value="MOMO"
@@ -241,7 +237,7 @@ const Cart = () => {
                 />
                 <Form.Check
                   type="radio"
-                  label="💳 Thanh toán bằng VNPay"
+                  label="Thanh toán bằng VNPay"
                   name="paymentMethod"
                   value="VNPAY"
                   checked={paymentMethod === 'VNPAY'}

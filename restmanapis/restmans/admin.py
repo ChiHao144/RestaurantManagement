@@ -5,7 +5,7 @@ from django.urls import path
 from django.utils.safestring import mark_safe
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
-
+import json
 from .models import Category, Dish, Order, OrderDetail, Review, Table, Booking, User, BookingDetail, ReviewReply
 
 
@@ -107,11 +107,16 @@ class RestaurantAdminSite(admin.AdminSite):
         ] + super().get_urls()
 
     def dish_stats(self, request):
-        """View để hiển thị thống kê."""
-        stats = Category.objects.annotate(dish_count=Count('dishes__id')).values('id', 'name', 'dish_count')
+        stats_qs = Category.objects.annotate(
+            dish_count=Count('dishes__id')
+        ).values('name', 'dish_count')
+
+        stats_list = list(stats_qs)  # Chuyển QuerySet sang list dict
+        stats_json = json.dumps(stats_list)  # Dùng cho JS
 
         return TemplateResponse(request, 'admin/stats.html', {
-            'stats': stats,
+            'stats_list': stats_list,  # Dùng cho bảng HTML
+            'stats_json': stats_json,  # Dùng cho Chart.js
             'title': 'Thống kê số lượng món ăn'
         })
 

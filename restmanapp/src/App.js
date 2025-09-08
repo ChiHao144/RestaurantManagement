@@ -31,6 +31,9 @@ import { TableProvider } from "./configs/TableContext";
 import ReviewManagement from "./pages/manager/ReviewManager";
 import PaymentSuccess from "./pages/customer/PaymentSuccess";
 import PaymentFailure from "./pages/customer/PaymentFailure";
+import Statistics from "./pages/manager/Statistics";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 const App = () => {
   return (
@@ -45,6 +48,8 @@ const App = () => {
                 <Route path="categories/:categoryName" element={<Home />} />
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+                <Route path="reset-password/:uid/:token/" element={<ResetPassword />} />
                 <Route path="booking" element={<Booking />} />
                 <Route path="history-booking" element={<BookingHistory />} />
                 <Route path="cart" element={<Cart />} />
@@ -66,6 +71,7 @@ const App = () => {
                 <Route path="print-invoice" element={<PrintableInvoice />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="allreviews" element={<ReviewManagement />} />
+                <Route path="statistics" element={<Statistics />} />
               </Route>
 
               {/* ---- Layout cho waiter ---- */}

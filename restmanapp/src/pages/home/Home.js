@@ -48,7 +48,7 @@ const Home = () => {
         const timerId = setTimeout(() => {
             setDebouncedQuery(searchQuery);
             setPage(1); // reset về trang 1 khi đổi search
-        }, 400);
+        }, 500);
         return () => clearTimeout(timerId);
     }, [searchQuery]);
 
@@ -128,7 +128,7 @@ const Home = () => {
                 className="text-center mb-4 fw-bold"
                 style={{ color: "#8B0000" }}
             >
-                🍽️ THỰC ĐƠN NHÀ HÀNG TÂM AN 🍷
+                THỰC ĐƠN NHÀ HÀNG TÂM AN 
             </h1>
 
             {/* Search */}
@@ -233,7 +233,7 @@ const Home = () => {
                                                 style={{ backgroundColor: "#8B0000", border: "none" }}
                                                 onClick={() => addToCart(dish)}
                                             >
-                                                Thêm vào giỏ 🛒
+                                                Thêm vào giỏ 
                                             </Button>
                                         </div>
                                     </div>

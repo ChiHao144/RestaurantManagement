@@ -15,6 +15,10 @@ router.register('orders', views.OrderViewSet, basename='order')
 router.register('momo', views.MomoIPNViewSet, basename='momo')
 router.register('vnpay', views.VNPayIPNViewSet, basename='vnpay')
 router.register('vnpay/return', views.VNPayReturnViewSet, basename='vnpay-return')
+router.register('momo/return', views.MomoReturnViewSet, basename='momo-return')
+router.register('stats', views.StatsViewSet, basename='stats')
+router.register('chatbot', views.ChatbotViewSet, basename='chatbot')
+router.register('password-reset', views.PasswordResetViewSet, basename='password-reset')
 
 
 

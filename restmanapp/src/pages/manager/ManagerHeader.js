@@ -40,6 +40,9 @@ const ManagerHeader = () => {
             <LinkContainer to="/manager/allreviews">
               <Nav.Link>Quản lý đánh giá</Nav.Link>
             </LinkContainer>
+            <LinkContainer to="/manager/statistics">
+              <Nav.Link>Thống kê</Nav.Link>
+            </LinkContainer>
           </Nav>
 
           <Nav>

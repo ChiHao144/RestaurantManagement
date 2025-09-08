@@ -163,7 +163,7 @@ const DishDetail = () => {
                         {parseInt(dish.price).toLocaleString('vi-VN')} VNĐ
                     </p>
                     <Button variant="dark" size="lg" onClick={() => addToCart(dish)}>
-                        Thêm vào giỏ 🛒
+                        Thêm vào giỏ 
                     </Button>
                 </Col>
             </Row>

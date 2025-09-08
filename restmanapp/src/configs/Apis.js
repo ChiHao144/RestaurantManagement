@@ -31,6 +31,12 @@ export const endpoints = {
     'delete-review': (reviewId) => `/reviews/${reviewId}/`,
     'update-order': (orderId) => `/orders/${orderId}/update-order/`,
     'initiate-vnpay-payment': (orderId) => `/orders/${orderId}/initiate-vnpay-payment/`,
+    'stats-revenue': '/stats/revenue/',
+    'stats-dishes': '/stats/dish-popularity/',
+    'chatbot-ask': '/chatbot/ask/',
+    'request-password-reset': '/password-reset/request-reset/',
+    'confirm-password-reset': '/password-reset/confirm/',
+    'complete-booking': (bookingId) => `/bookings/${bookingId}/complete/`,
 }
 
 export const authApi = () => {

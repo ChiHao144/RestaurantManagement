@@ -30,7 +30,7 @@ const ReviewManagement = () => {
     const [replyContent, setReplyContent] = useState('');
 
     const loadReviews = useCallback(async () => {
-        if (!user || !['STAFF', 'MANAGER', 'ADMIN'].includes(user.role)) {
+        if (!user || !['WAITER', 'MANAGER', 'ADMIN'].includes(user.role)) {
             setError("Bạn không có quyền truy cập trang này.");
             setLoading(false);
             return;

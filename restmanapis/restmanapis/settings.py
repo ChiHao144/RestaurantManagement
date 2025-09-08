@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +30,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -66,27 +68,27 @@ EMAIL_PORT = 587
 # Sử dụng Transport Layer Security (TLS)
 EMAIL_USE_TLS = True
 # Tài khoản email của bạn
-EMAIL_HOST_USER = 'haopc1404@gmail.com'
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 # Mật khẩu ứng dụng của tài khoản email
-EMAIL_HOST_PASSWORD = 'fglztnymslybrmzq'
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 # Email mặc định sẽ hiển thị ở phần "From"
-DEFAULT_FROM_EMAIL = 'haopc1404@gmail.com'
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 # Cấu hình MoMo - BẠN NÊN ĐẶT CÁC GIÁ TRỊ NÀY TRONG settings.py
 MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
 MOMO_PARTNER_CODE = "MOMO"  # Thay bằng Partner Code của bạn
-MOMO_ACCESS_KEY = "F8BBA842ECF85"  # Thay bằng Access Key của bạn
-MOMO_SECRET_KEY = "K951B6PE1waDMi640xX08PD3vg6EkVlz"  # Thay bằng Secret Key của bạn
-MOMO_IPN_URL = "https://localhost:8000/momo/"  # Thay bằng URL IPN thật của bạn
-MOMO_REDIRECT_URL = "https://localhost:8000/momo/"  # Thay bằng URL Redirect thật của bạn
+MOMO_ACCESS_KEY = config("MOMO_ACCESS_KEY")  # Thay bằng Access Key của bạn
+MOMO_SECRET_KEY = config("MOMO_SECRET_KEY")  # Thay bằng Secret Key của bạn
+MOMO_IPN_URL = "https://006a26554c86.ngrok-free.app/momo/"  # Thay bằng URL IPN thật của bạn
+MOMO_REDIRECT_URL = "https://006a26554c86.ngrok-free.app/momo/return"  # Thay bằng URL Redirect thật của bạn
 
 # === CẤU HÌNH VNPAY ===
 VNPAY_ENDPOINT = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-VNPAY_TMNCODE = "LSGEFJZL"  # Lấy từ VNPay
-VNPAY_HASH_SECRET_KEY = "54BE9GO6556S6E94KB9VLV46XLHTYEKM" # Lấy từ VNPay
-VNPAY_RETURN_URL = "https://9318144ca538.ngrok-free.app/vnpay/return/" # URL front-end để khách hàng quay về
+VNPAY_TMNCODE = config("VNPAY_TMNCODE")  # Lấy từ VNPay
+VNPAY_HASH_SECRET_KEY = config("VNPAY_HASH_SECRET_KEY") # Lấy từ VNPay
+VNPAY_RETURN_URL = "https://006a26554c86.ngrok-free.app/vnpay/return/" # URL front-end để khách hàng quay về
 # URL IPN cần ngrok để test, ví dụ: "https://your-ngrok.ngrok-free.app/vnpay/ipn/"
-VNPAY_IPN_URL = "https://9318144ca538.ngrok-free.app/vnpay/"
+VNPAY_IPN_URL = "https://006a26554c86.ngrok-free.app/vnpay/"
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -96,9 +98,9 @@ from cloudinary.utils import cloudinary_url
 
 # Configuration
 cloudinary.config(
-    cloud_name = "dbitlfhjx",
-    api_key = "889556431667884",
-    api_secret = "ycTIF7ajW7_lKzO_Ff4zAwpeB6g",
+    cloud_name = config("CLOUD_NAME"),
+    api_key = config("CLOUD_API_KEY"),
+    api_secret = config("CLOUD_API_SECRET"),
     secure=True
 )
 
@@ -189,5 +191,77 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 OAUTH2_PROVIDER = { 'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore' }
 
-CLIENT_ID = 'iQnD8RzJ1ECAqR9IH4FoyDJW7p8T9R40n2IEQrHz'
-CLIENT_SECRET = 'VSmBl2VTdylEm6ts68nQkRPHtXgIGnNAJsQPIDempHG4EYpWhjbfq5HRIRWQRqt7njdc1rE2Gbtu5HBk7pc4zYpUmWZmKWYx9x4jb08Rb1jgVRP2XciMurzHN9qvHbe2'
+CLIENT_ID = config("CLIENT_ID")
+CLIENT_SECRET = config("CLIENT_SECRET")
+
+GEMINI_API_KEY = config("GEMINI_API_KEY")
+
+JAZZMIN_SETTINGS = {
+    # Tiêu đề hiển thị trên tab trình duyệt (tối đa 50 ký tự)
+    "site_title": "Quản trị Nhà hàng Tâm An",
+
+    # Tiêu đề hiển thị trên trang đăng nhập và trên cùng bên trái
+    "site_header": "Nhà hàng Tâm An",
+
+    # Logo cho trang quản trị. Đặt file logo vào thư mục static của bạn.
+    # Ví dụ: "img/logo.png"
+    "site_logo": "path/to/your/logo.png",
+
+    # Logo hiển thị trên trang đăng nhập
+    "login_logo": "path/to/your/login_logo.png",
+
+    # Chữ hiển thị ở cuối trang
+    "copyright": "Nhà hàng Tâm An Ltd",
+
+    # === GIAO DIỆN ===
+    # Sử dụng theme mặc định (có thể đổi sang các theme khác như "cerulean", "cyborg", "darkly", ...)
+    "theme": "default",
+
+    # Giao diện cho các nút bấm và thành phần
+    "UI_TWEAKS": {
+        "navbar_small_text": False,
+        "footer_small_text": False,
+        "body_small_text": False,
+        "brand_small_text": False,
+        "brand_colour": "navbar-success",  # Màu của header
+        "accent": "accent-primary",
+        "navbar": "navbar-dark",
+        "no_navbar_border": False,
+        "sidebar": "sidebar-dark-primary",  # Màu của sidebar
+        "sidebar_nav_small_text": False,
+        "sidebar_disable_expand": False,
+        "sidebar_nav_child_indent": False,
+        "sidebar_nav_compact_style": False,
+        "sidebar_nav_legacy_style": False,
+        "sidebar_nav_flat_style": False,
+        "theme": "default",
+        "button_classes": {
+            "primary": "btn-primary",
+            "secondary": "btn-secondary",
+            "info": "btn-info",
+            "warning": "btn-warning",
+            "danger": "btn-danger",
+            "success": "btn-success"
+        }
+    },
+
+    # === MENU BÊN CẠNH (SIDEBAR) ===
+    # Tùy chỉnh các icon và thứ tự hiển thị của các model
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "restmans.Category": "fas fa-utensils",
+        "restmans.Dish": "fas fa-concierge-bell",
+        "restmans.Order": "fas fa-file-invoice-dollar",
+        "restmans.Table": "fas fa-chair",
+        "restmans.Booking": "fas fa-calendar-check",
+        "restmans.Review": "fas fa-star",
+    },
+
+    # Hiển thị model nào lên đầu
+    "topmenu_links": [
+        {"name": "Trang chủ", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"app": "restmans", "name": "Quản lý Nhà hàng"},
+    ],
+}

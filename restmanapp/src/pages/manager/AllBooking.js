@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Container, Table, Spinner, Alert, Badge, Button, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { authApi, endpoints } from '../../configs/Apis';
@@ -6,7 +6,7 @@ import { UserContext } from '../../configs/UserContext';
 import moment from 'moment';
 import 'moment/locale/vi';
 
-// Component để hiển thị huy hiệu trạng thái với màu sắc tương ứng
+// Component để hiển thị huy hiệu trạng thái
 const StatusBadge = ({ status }) => {
     let variant;
     let text = status;
@@ -17,8 +17,12 @@ const StatusBadge = ({ status }) => {
             text = 'Đang chờ';
             break;
         case 'CONFIRMED':
-            variant = 'success';
+            variant = 'primary';
             text = 'Đã xác nhận';
+            break;
+        case 'COMPLETED': // [CẬP NHẬT]
+            variant = 'success';
+            text = 'Đã hoàn thành';
             break;
         case 'CANCELLED':
             variant = 'secondary';
@@ -36,66 +40,62 @@ const AllBookings = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filterStatus, setFilterStatus] = useState('ALL'); // 'ALL', 'PENDING', 'CONFIRMED', 'CANCELLED'
+    const [filterStatus, setFilterStatus] = useState('ALL');
+
+    const loadBookings = useCallback(async () => {
+        if (!user) return;
+        try {
+            const res = await authApi().get(endpoints['bookings']);
+            setBookings(res.data.results || res.data);
+        } catch (err) {
+            console.error("Lỗi khi tải danh sách đặt bàn:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
 
     useEffect(() => {
         moment.locale('vi');
-        const loadAllBookings = async () => {
-            if (!user || !['STAFF', 'MANAGER', 'ADMIN'].includes(user.role)) {
-                setError("Bạn không có quyền truy cập trang này.");
-                setLoading(false);
-                return;
-            }
+        loadBookings();
+    }, [loadBookings]);
 
+    // [MỚI] Hàm xử lý khi nhân viên đánh dấu đơn là đã hoàn thành
+    const handleCompleteBooking = async (bookingId) => {
+        if (window.confirm(`Bạn có chắc chắn muốn đánh dấu đơn đặt bàn #${bookingId} là đã hoàn thành không?`)) {
             try {
-                setLoading(true);
-                const res = await authApi().get(endpoints['bookings'], {
-                });
-                
-                const data = res.data.results || res.data;
-                if (Array.isArray(data)) {
-                    setBookings(data);
-                } else {
-                    throw new Error("Dữ liệu trả về không hợp lệ.");
-                }
-
+                const res = await authApi().patch(endpoints['complete-booking'](bookingId));
+                // Cập nhật lại trạng thái của đơn đặt bàn trên giao diện
+                setBookings(currentBookings =>
+                    currentBookings.map(b => (b.id === bookingId ? res.data : b))
+                );
             } catch (err) {
-                console.error("Lỗi khi tải tất cả đơn đặt bàn:", err);
-                setError("Không thể tải dữ liệu. Vui lòng thử lại.");
-            } finally {
-                setLoading(false);
+                console.error(`Lỗi khi hoàn thành đơn #${bookingId}:`, err);
+                alert("Thao tác thất bại. Vui lòng thử lại.");
             }
-        };
-
-        loadAllBookings();
-    }, [user]);
-
-    // Lọc danh sách booking dựa trên filterStatus
-    const filteredBookings = bookings.filter(booking => {
-        if (filterStatus === 'ALL') {
-            return true;
         }
-        return booking.status === filterStatus;
-    });
+    };
+
+    const filteredBookings = bookings.filter(b => filterStatus === 'ALL' || b.status === filterStatus);
 
     if (loading) {
         return <div className="text-center my-5"><Spinner animation="border" variant="success" /></div>;
     }
-
+    
     if (error) {
-        return <Alert variant="danger" className="mt-4">{error}</Alert>;
+        return <Alert variant="danger">{error}</Alert>;
     }
 
     return (
         <Container className="my-4">
             <h1 className="text-center text-success mb-4">Quản Lý Tất Cả Đơn Đặt Bàn</h1>
-
+            
             <Form.Group className="mb-3" style={{ maxWidth: '300px' }}>
                 <Form.Label className="fw-bold">Lọc theo trạng thái:</Form.Label>
                 <Form.Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                     <option value="ALL">Tất cả</option>
                     <option value="PENDING">Đang chờ</option>
                     <option value="CONFIRMED">Đã xác nhận</option>
+                    <option value="COMPLETED">Đã hoàn thành</option>
                     <option value="CANCELLED">Đã hủy</option>
                 </Form.Select>
             </Form.Group>
@@ -126,11 +126,19 @@ const AllBookings = () => {
                                     : 'Chưa xếp'}
                             </td>
                             <td>
-                                {b.status === 'PENDING' && (
-                                    <Button as={Link} to={`/dashboard/assign-table/${b.id}`} variant="dark" size="sm">
-                                        Gán bàn
-                                    </Button>
-                                )}
+                                <div className="d-flex flex-column flex-sm-row gap-2">
+                                    {b.status === 'PENDING' && (
+                                        <Button as={Link} to={`/manager/assign-table/${b.id}`} variant="dark" size="sm">
+                                            Gán bàn
+                                        </Button>
+                                    )}
+                                    {/* [MỚI] Nút để hoàn thành bữa ăn */}
+                                    {b.status === 'CONFIRMED' && (
+                                        <Button variant="success" size="sm" onClick={() => handleCompleteBooking(b.id)}>
+                                            Hoàn thành
+                                        </Button>
+                                    )}
+                                </div>
                             </td>
                         </tr>
                     )) : (
