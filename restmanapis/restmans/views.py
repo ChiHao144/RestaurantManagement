@@ -217,7 +217,7 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
             try:
                 customer_email = booking.user.email
                 if customer_email:
-                    subject = f"Xác nhận đặt bàn thành công tại Nhà hàng Tâm An - Mã #{booking.id}"
+                    subject = f"Xác nhận đặt bàn thành công tại Nhà hàng SpicyTown - Mã #{booking.id}"
 
                     context = {
                         'user': booking.user,
@@ -615,7 +615,7 @@ class ChatbotViewSet(viewsets.ViewSet):
             )
 
             system_prompt = (
-                "Bạn là một nhân viên tư vấn món ăn thân thiện và chuyên nghiệp của nhà hàng Tâm An. "
+                "Bạn là một nhân viên tư vấn món ăn thân thiện và chuyên nghiệp của nhà hàng SpicyTown. "
                 "Kiến thức duy nhất của bạn là danh sách thực đơn được cung cấp dưới đây. "
                 "Nhiệm vụ của bạn là dựa vào yêu cầu của khách hàng và gợi ý những món ăn phù hợp nhất từ thực đơn. "
                 "Hãy trả lời một cách tự nhiên, ngắn gọn và luôn lịch sự. "
@@ -668,7 +668,7 @@ class PasswordResetViewSet(viewsets.ViewSet):
 
             reset_link = f"http://localhost:3000/reset-password/{uid}/{token}/"
 
-            subject = "Yêu cầu đặt lại mật khẩu tại Nhà hàng Tâm An"
+            subject = "Yêu cầu đặt lại mật khẩu tại Nhà hàng SpicyTown"
             context = {'reset_link': reset_link, 'user': user}
             html_message = render_to_string('emails/password_reset_email.html', context)
 

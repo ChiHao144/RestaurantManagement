@@ -190,11 +190,11 @@ CLIENT_SECRET = config("CLIENT_SECRET")
 GEMINI_API_KEY = config("GEMINI_API_KEY")
 
 JAZZMIN_SETTINGS = {
-    "site_title": "Quản trị Nhà hàng Tâm An",
-    "site_header": "Nhà hàng Tâm An",
+    "site_title": "Quản trị Nhà hàng SpicyTown",
+    "site_header": "Nhà hàng SpicyTown",
     "site_brand": "Hệ thống Quản lý",
     "welcome_sign": "Xin chào quản trị viên",
-    "copyright": "© Nhà hàng Tâm An",
+    "copyright": "© Nhà hàng SpicyTown",
 
     "icons": {
         "auth": "fas fa-users-cog",

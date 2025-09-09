@@ -10,7 +10,7 @@ const Footer = () => {
       <Container>
         <Row className="mb-4">
           <Col md={4} className="mb-3">
-            <h5 className="fw-bold">🍴 Restaurant Management</h5>
+            <h5 className="fw-bold">Restaurant Management</h5>
             <p>
               Chúng tôi mang đến trải nghiệm ẩm thực tuyệt vời với không gian sang trọng và dịch vụ tận tâm.
             </p>
@@ -19,16 +19,16 @@ const Footer = () => {
           <Col md={4} className="mb-3">
             <h5 className="fw-bold">Liên kết nhanh</h5>
             <ul className="list-unstyled">
-              <li><a href="#" style={{ color: "#FFD700", textDecoration: "none" }}>🏠 Trang chủ</a></li>
-              <li><a href="#" style={{ color: "#FFD700", textDecoration: "none" }}>📖 Thực đơn</a></li>
-              <li><a href="#" style={{ color: "#FFD700", textDecoration: "none" }}>📅 Đặt bàn</a></li>
-              <li><a href="#" style={{ color: "#FFD700", textDecoration: "none" }}>📩 Liên hệ</a></li>
+              <li><a href="#" style={{ color: "#FFD700", textDecoration: "none" }}>Trang chủ</a></li>
+              <li><a href="#" style={{ color: "#FFD700", textDecoration: "none" }}>Thực đơn</a></li>
+              <li><a href="#" style={{ color: "#FFD700", textDecoration: "none" }}>Đặt bàn</a></li>
+              <li><a href="#" style={{ color: "#FFD700", textDecoration: "none" }}>Liên hệ</a></li>
             </ul>
           </Col>
 
           <Col md={4} className="mb-3">
             <h5 className="fw-bold">Liên hệ</h5>
-            <p><GeoAlt size={18} className="me-2" /> 123 Nguyễn Huệ, Q.1, TP.HCM</p>
+            <p><GeoAlt size={18} className="me-2" /> Phường Sài Gòn, TP. Hồ Chí Minh</p>
             <p><Telephone size={18} className="me-2" /> (+84) 123-456-789</p>
             <p><Envelope size={18} className="me-2" /> support@restaurant.com</p>
           </Col>

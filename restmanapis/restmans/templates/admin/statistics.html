@@ -4,7 +4,6 @@
 <div class="container-fluid mt-4">
     <h1 class="mb-4">{{ title }}</h1>
 
-    <!-- Bộ lọc -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="get" class="d-flex align-items-end gap-3">
@@ -21,7 +20,6 @@
         </div>
     </div>
 
-    <!-- Các chỉ số KPI -->
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card text-white bg-success shadow h-100">
@@ -49,7 +47,6 @@
         </div>
     </div>
 
-    <!-- Các biểu đồ -->
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow-sm">
@@ -76,7 +73,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // --- Biểu đồ Doanh thu ---
         const revenueData = JSON.parse(document.getElementById('revenue-data').textContent);
         const revenueLabels = Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`);
         const revenueValues = Array(12).fill(0);
@@ -97,7 +93,6 @@
             },
         });
 
-        // --- Biểu đồ Tần suất Món ăn ---
         const dishData = JSON.parse(document.getElementById('dish-popularity-data').textContent);
         const dishLabels = dishData.map(d => d.name);
         const dishValues = dishData.map(d => d.order_count);

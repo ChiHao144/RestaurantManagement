@@ -3,14 +3,15 @@ import { Container, Row, Col, Card, Button, Spinner, Alert, Form, FormControl, }
 import { Link, useParams } from "react-router-dom";
 import Apis, { endpoints } from "../../configs/Apis";
 import { CartContext } from "../../configs/CartContext";
+import { Search } from "react-bootstrap-icons";
 
 const Home = () => {
     const { categoryName } = useParams();
     const { addToCart } = useContext(CartContext);
     const [dishes, setDishes] = useState([]);
     const [allCategories, setAllCategories] = useState([]);
-    const [loading, setLoading] = useState(false); 
-    const [loadingMore, setLoadingMore] = useState(false); 
+    const [loading, setLoading] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -33,12 +34,11 @@ const Home = () => {
     useEffect(() => {
         const timerId = setTimeout(() => {
             setDebouncedQuery(searchQuery);
-            setPage(1); 
+            setPage(1);
         }, 500);
         return () => clearTimeout(timerId);
     }, [searchQuery]);
 
-    // Load dishes
     useEffect(() => {
         const loadDishes = async () => {
             if (!allCategories.length && categoryName) return;
@@ -111,7 +111,7 @@ const Home = () => {
                 className="text-center mb-4 fw-bold"
                 style={{ color: "#8B0000" }}
             >
-                THỰC ĐƠN NHÀ HÀNG TÂM AN
+                Thực Đơn Nhà Hàng SpicyTown
             </h1>
 
             <Form className="mb-4" onSubmit={(e) => e.preventDefault()}>
@@ -137,7 +137,7 @@ const Home = () => {
                         onFocus={(e) => (e.target.style.border = "2px solid #8B0000")}
                         onBlur={(e) => (e.target.style.border = "2px solid #ccc")}
                     />
-                    <span
+                    <Search
                         style={{
                             position: "absolute",
                             top: "50%",
@@ -145,10 +145,9 @@ const Home = () => {
                             transform: "translateY(-50%)",
                             color: "#8B0000",
                             fontSize: "18px",
+                            pointerEvents: "none",
                         }}
-                    >
-                        🔍
-                    </span>
+                    />
                 </div>
             </Form>
 

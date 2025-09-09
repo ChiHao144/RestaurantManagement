@@ -145,7 +145,7 @@ const DishDetail = () => {
                     <p className="display-4 fw-bold text-danger">
                         {parseInt(dish.price).toLocaleString('vi-VN')} VNĐ
                     </p>
-                    <Button variant="dark" size="lg" onClick={() => addToCart(dish)}>
+                    <Button variant="info" size="lg" onClick={() => addToCart(dish)}>
                         Thêm vào giỏ
                     </Button>
                 </Col>

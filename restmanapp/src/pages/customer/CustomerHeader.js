@@ -29,14 +29,14 @@ const CustomerHeader = () => {
                 <LinkContainer to="/">
                     <Navbar.Brand className="fw-bold fs-4 text-light">
                         <Image
-                            src="https://res.cloudinary.com/dbitlfhjx/image/upload/v1755265003/w1ecbqfhmihqbs5xisqa.jpg"
+                            src="https://res.cloudinary.com/dbitlfhjx/image/upload/v1757430095/avatar_bq3m47.jpg"
                             width="45"
                             height="45"
                             roundedCircle
                             className="me-2 border border-2 border-warning"
                             alt="Logo"
                         />
-                        <span style={{ color: "#FFD700" }}>Nhà Hàng</span> Tâm An
+                        <span style={{ color: "#FFD700" }}>Nhà Hàng</span> SpicyTown
                     </Navbar.Brand>
                 </LinkContainer>
 
@@ -50,7 +50,7 @@ const CustomerHeader = () => {
                         <NavDropdown
                             title={<span className="text-light">Danh mục</span>}
                             id="category-nav-dropdown"
-                            menuVariant="dark"
+                            menuVariant="light"
                         >
                             {categories?.map((c) => (
                                 <LinkContainer key={c.name} to={`/categories/${c.name}`}>
@@ -97,7 +97,7 @@ const CustomerHeader = () => {
                                     </>
                                 }
                                 id="user-nav-dropdown"
-                                menuVariant="dark"
+                                menuVariant="light"
                             >
                                 <LinkContainer to="/profile">
                                     <NavDropdown.Item>Thông tin cá nhân</NavDropdown.Item>
