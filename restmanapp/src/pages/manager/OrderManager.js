@@ -6,7 +6,6 @@ import { UserContext } from '../../configs/UserContext';
 import moment from 'moment';
 import 'moment/locale/vi';
 
-// Component để hiển thị huy hiệu trạng thái
 const StatusBadge = ({ status }) => {
     let variant;
     let text = status;
@@ -37,14 +36,12 @@ const OrderManagement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // State cho Modal cập nhật
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [newStatus, setNewStatus] = useState('');
     const [newPaymentMethod, setNewPaymentMethod] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
 
-    // State cho các bộ lọc
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [searchId, setSearchId] = useState('');
 
@@ -77,7 +74,6 @@ const OrderManagement = () => {
         loadOrders();
     }, [loadOrders]);
 
-    // Hàm mở Modal
     const handleOpenModal = (order) => {
         setSelectedOrder(order);
         setNewStatus(order.status);
@@ -85,13 +81,11 @@ const OrderManagement = () => {
         setShowUpdateModal(true);
     };
 
-    // Hàm đóng Modal
     const handleCloseModal = () => {
         setShowUpdateModal(false);
         setSelectedOrder(null);
     };
 
-    // Hàm lưu thay đổi từ Modal
     const handleSaveChanges = async () => {
         if (!selectedOrder) return;
 
@@ -113,7 +107,6 @@ const OrderManagement = () => {
         }
     };
 
-    // Lọc và tìm kiếm hóa đơn
     const filteredOrders = orders.filter(order => {
         const matchesStatus = filterStatus === 'ALL' || order.status === filterStatus;
         const matchesId = searchId === '' || order.id.toString().includes(searchId);

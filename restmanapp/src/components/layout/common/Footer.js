@@ -9,7 +9,6 @@ const Footer = () => {
     >
       <Container>
         <Row className="mb-4">
-          {/* About Section */}
           <Col md={4} className="mb-3">
             <h5 className="fw-bold">🍴 Restaurant Management</h5>
             <p>
@@ -17,7 +16,6 @@ const Footer = () => {
             </p>
           </Col>
 
-          {/* Navigation Links */}
           <Col md={4} className="mb-3">
             <h5 className="fw-bold">Liên kết nhanh</h5>
             <ul className="list-unstyled">
@@ -28,7 +26,6 @@ const Footer = () => {
             </ul>
           </Col>
 
-          {/* Contact Info */}
           <Col md={4} className="mb-3">
             <h5 className="fw-bold">Liên hệ</h5>
             <p><GeoAlt size={18} className="me-2" /> 123 Nguyễn Huệ, Q.1, TP.HCM</p>

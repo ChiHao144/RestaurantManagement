@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button, Card, Form, InputGroup, FormControl, Spinner } from 'react-bootstrap';
 import Apis, { endpoints } from '../../configs/Apis';
 
-// CSS nội bộ để tạo hiệu ứng và giao diện
 const styles = {
     widgetContainer: {
         position: 'fixed',

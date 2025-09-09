@@ -6,7 +6,6 @@ import { UserContext } from '../../configs/UserContext';
 import moment from 'moment';
 import 'moment/locale/vi';
 
-// Component để hiển thị huy hiệu trạng thái
 const StatusBadge = ({ status }) => {
     let variant;
     let text = status;
@@ -20,7 +19,7 @@ const StatusBadge = ({ status }) => {
             variant = 'primary';
             text = 'Đã xác nhận';
             break;
-        case 'COMPLETED': // [CẬP NHẬT]
+        case 'COMPLETED': 
             variant = 'success';
             text = 'Đã hoàn thành';
             break;
@@ -59,12 +58,10 @@ const AllBookings = () => {
         loadBookings();
     }, [loadBookings]);
 
-    // [MỚI] Hàm xử lý khi nhân viên đánh dấu đơn là đã hoàn thành
     const handleCompleteBooking = async (bookingId) => {
         if (window.confirm(`Bạn có chắc chắn muốn đánh dấu đơn đặt bàn #${bookingId} là đã hoàn thành không?`)) {
             try {
                 const res = await authApi().patch(endpoints['complete-booking'](bookingId));
-                // Cập nhật lại trạng thái của đơn đặt bàn trên giao diện
                 setBookings(currentBookings =>
                     currentBookings.map(b => (b.id === bookingId ? res.data : b))
                 );
@@ -132,7 +129,6 @@ const AllBookings = () => {
                                             Gán bàn
                                         </Button>
                                     )}
-                                    {/* [MỚI] Nút để hoàn thành bữa ăn */}
                                     {b.status === 'CONFIRMED' && (
                                         <Button variant="success" size="sm" onClick={() => handleCompleteBooking(b.id)}>
                                             Hoàn thành

@@ -98,34 +98,24 @@ class ReviewViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateAP
 
     @action(methods=['post'], detail=True, url_path='reply', permission_classes=[OrPermission(perms.IsManagerUser, perms.IsWaiterUser)])
     def reply(self, request, pk=None):
-        """
-        API cho phép nhân viên (STAFF, MANAGER, ADMIN) phản hồi lại một đánh giá.
-        Input: { "content": "Cảm ơn bạn đã góp ý..." }
-        """
         try:
             review = self.get_object()
             content = request.data.get('content')
             if not content:
                 return Response({'error': 'Nội dung phản hồi không được để trống.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Tạo phản hồi mới, tự động gán nhân viên đang đăng nhập
             reply = ReviewReply.objects.create(
                 review=review,
                 user=request.user,
                 content=content
             )
 
-            # Dùng ReviewReplySerializer để trả về dữ liệu phản hồi
             return Response(serializers.ReviewReplySerializer(reply).data, status=status.HTTP_201_CREATED)
         except Review.DoesNotExist:
             return Response({'error': 'Đánh giá không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class AllReviewsViewSet(viewsets.ViewSet, generics.ListAPIView):
-    """
-    [MỚI] API để lấy tất cả các đánh giá cho trang quản lý.
-    """
-    # Lấy tất cả đánh giá, sắp xếp mới nhất lên đầu
     queryset = Review.objects.select_related('user', 'dish').prefetch_related('replies__user').order_by('-created_date')
     serializer_class = serializers.ReviewSerializer
     permission_classes = [lambda: OrPermission(perms.IsManagerUser, perms.IsWaiterUser)]
@@ -161,23 +151,15 @@ class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
 
     @action(methods=['get'], detail=False, url_path='statuses', permission_classes=[OrPermission(perms.IsManagerUser, perms.IsWaiterUser)])
     def statuses(self, request):
-        """
-        API để lấy danh sách tất cả các bàn và TRẠNG THÁI HIỆN TẠI của chúng.
-        """
         tables = Table.objects.all().order_by('table_number')
         return Response(self.get_serializer(tables, many=True).data)
 
     @action(methods=['patch'], detail=True, url_path='update-status', permission_classes=[OrPermission(perms.IsManagerUser, perms.IsWaiterUser)])
     def update_status(self, request, pk=None):
-        """
-        API để nhân viên CẬP NHẬT TRẠNG THÁI của một bàn cụ thể.
-        Input: { "status": "OCCUPIED" }
-        """
         try:
             table = self.get_object()
             new_status = request.data.get('status')
 
-            # Kiểm tra xem trạng thái mới có hợp lệ không
             if new_status not in [s[0] for s in Table.TableStatus.choices]:
                 return Response({'error': 'Trạng thái không hợp lệ.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -195,7 +177,6 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
 
     def get_queryset(self):
         user = self.request.user
-        # Giả sử WAITER là một vai trò hợp lệ trong model User của bạn
         allowed_roles = [
             User.Role.MANAGER,
             User.Role.ADMIN,
@@ -221,7 +202,7 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
                 return Response({'error': 'Dữ liệu "details" phải là một mảng và không được rỗng.'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            assigned_tables_info = []  # Biến để lưu thông tin bàn cho email
+            assigned_tables_info = []
 
             with transaction.atomic():
                 booking.details.all().delete()
@@ -233,7 +214,6 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
             booking.status = booking.BookingStatus.CONFIRMED
             booking.save()
 
-            # === BẮT ĐẦU LOGIC GỬI EMAIL ===
             try:
                 customer_email = booking.user.email
                 if customer_email:
@@ -245,10 +225,8 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
                         'tables': assigned_tables_info,
                     }
 
-                    # Render email từ một file template HTML để email đẹp hơn
                     html_message = render_to_string('emails/booking_confirmation.html', context)
 
-                    # Tạo phiên bản văn bản thuần túy dự phòng
                     plain_message = f"Chào {booking.user.first_name}, đơn đặt bàn #{booking.id} của bạn đã được xác nhận thành công."
 
                     send_mail(
@@ -260,9 +238,7 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
                         fail_silently=False,
                     )
             except Exception as e:
-                # Ghi lại lỗi nếu gửi mail thất bại, nhưng không làm hỏng cả quy trình
                 logging.error(f"Lỗi gửi email xác nhận cho đơn #{booking.id}: {e}")
-            # === KẾT THÚC LOGIC GỬI EMAIL ===
 
             return Response(self.get_serializer(booking).data)
         except (Booking.DoesNotExist, Table.DoesNotExist):
@@ -282,7 +258,6 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
             booking = self.get_object()
             user = request.user
 
-            # Chỉ chủ đơn hoặc nhân viên mới có quyền hủy
             if booking.user != user:
                 return Response({'error': 'Bạn không có quyền thực hiện hành động này.'},
                                 status=status.HTTP_403_FORBIDDEN)
@@ -299,13 +274,9 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
 
     @action(methods=['patch'], detail=True, url_path='complete', permission_classes=[perms.IsManagerUser])
     def complete_booking(self, request, pk=None):
-        """
-        [MỚI] API để nhân viên đánh dấu một đơn đặt bàn là đã hoàn thành.
-        """
         try:
             booking = self.get_object()
 
-            # Chỉ có thể hoàn thành các đơn đặt bàn đã được xác nhận
             if booking.status == 'CONFIRMED':
                 booking.status = 'COMPLETED'
                 booking.save()
@@ -340,7 +311,6 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
         return self.queryset.filter(user=user)
 
     def create(self, request, *args, **kwargs):
-        """[ĐÃ MỞ LẠI] Hành động này dành cho người dùng đã đăng nhập (đặt hàng online)."""
         cart = request.data.get('cart')
         if not cart:
             return Response({"error": "Giỏ hàng không được để trống."}, status=status.HTTP_400_BAD_REQUEST)
@@ -434,14 +404,9 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
 
     @action(methods=['patch'], detail=True, url_path='update-order')
     def update_order(self, request, pk=None):
-        """
-        [PHIÊN BẢN SỬA LỖI] API để nhân viên cập nhật hóa đơn.
-        """
         try:
             order = self.get_object()
 
-            # Sử dụng serializer để xác thực và cập nhật dữ liệu
-            # partial=True cho phép cập nhật một phần (chỉ những trường được gửi lên)
             serializer = self.get_serializer(order, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()  # Lưu các thay đổi vào database
@@ -451,28 +416,22 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
         except Order.DoesNotExist:
             return Response({'error': 'Hóa đơn không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            # Bắt các lỗi validation từ serializer
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['post'], detail=True, url_path='initiate-vnpay-payment')
     def initiate_vnpay_payment(self, request, pk=None):
-        """
-        Tạo URL thanh toán VNPay bằng cách sử dụng Vnpay utility class.
-        """
         try:
             order = self.get_object()
             if order.status != 'PENDING':
                 return Response({'error': 'Chỉ có thể thanh toán cho hóa đơn đang chờ.'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            # 1. Khởi tạo đối tượng Vnpay
             vnp = Vnpay()
 
             ip_addr = request.META.get('REMOTE_ADDR', '127.0.0.1')
             vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
             create_date = datetime.now(vietnam_tz)
 
-            # 2. Gán dữ liệu vào request_data của đối tượng Vnpay
             vnp.request_data = {
                 "vnp_Version": "2.1.0",
                 "vnp_Command": "pay",
@@ -489,10 +448,8 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
             }
 
             print("CHECK IPN URL:", settings.VNPAY_IPN_URL)
-            # Và cả Return URL nữa
             print("CHECK RETURN URL:", settings.VNPAY_RETURN_URL)
 
-            # 3. Gọi hàm để lấy URL thanh toán
             payment_url = vnp.get_payment_url()
 
             return Response({'paymentUrl': payment_url}, status=status.HTTP_200_OK)
@@ -514,7 +471,6 @@ class VNPayIPNViewSet(viewsets.ViewSet):
 
         vnp = Vnpay()
 
-        # 1. Xác thực chữ ký bằng hàm validate_response từ trợ lý
         if vnp.validate_response(input_data):
             response_code = input_data.get("vnp_ResponseCode")
             txn_ref = input_data.get("vnp_TxnRef")
@@ -523,11 +479,11 @@ class VNPayIPNViewSet(viewsets.ViewSet):
             try:
                 order = Order.objects.get(id=order_id)
                 if order.status == 'PENDING':
-                    if response_code == "00":  # Thanh toán thành công
+                    if response_code == "00":
                         order.status = "COMPLETED"
                         order.payment_method = "VNPAY"
                         order.save()
-                    else:  # Thanh toán thất bại
+                    else:
                         order.status = "CANCELLED"
                         order.save()
 
@@ -539,14 +495,13 @@ class VNPayIPNViewSet(viewsets.ViewSet):
             return Response({"RspCode": "97", "Message": "Invalid signature"})
 
 
-# [MỚI] ViewSet để xử lý khi khách hàng được chuyển hướng về (Return URL)
 class VNPayReturnViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
 
     def list(self, request):
         input_data = request.query_params.dict()
         if not input_data:
-            return redirect("http://localhost:3000/payment-failure")  # Chuyển về trang lỗi
+            return redirect("http://localhost:3000/payment-failure")
 
         vnp_secure_hash = input_data.pop("vnp_SecureHash", None)
         if "vnp_SecureHashType" in input_data:
@@ -568,15 +523,11 @@ class VNPayReturnViewSet(viewsets.ViewSet):
         generated_hash = hmac.new(secret_key_bytes, query_string_bytes, hashlib.sha512).hexdigest()
 
         if generated_hash == vnp_secure_hash:
-            # Chữ ký hợp lệ, kiểm tra kết quả giao dịch
             if input_data.get("vnp_ResponseCode") == "00":
-                # Chuyển hướng đến trang thành công ở frontend
                 return redirect("http://localhost:3000/payment-success")
             else:
-                # Chuyển hướng đến trang thất bại ở frontend
                 return redirect("http://localhost:3000/payment-failure")
         else:
-            # Chữ ký không hợp lệ, chuyển hướng đến trang lỗi
             logging.warning("VNPay Return URL: Invalid signature.")
             return redirect("http://localhost:3000/payment-failure")
 
@@ -589,7 +540,7 @@ class MomoIPNViewSet(viewsets.ViewSet):
         try:
             result_code = int(result_code)
         except (TypeError, ValueError):
-            result_code = -1  # giá trị mặc định nếu parse lỗi
+            result_code = -1
         original_order_id = data.get('orderId', '').split('_')[0]
         if result_code == 0:
             try:
@@ -610,38 +561,22 @@ class MomoReturnViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
 
     def list(self, request):
-        """
-        Xử lý request GET từ MoMo, sau đó chuyển hướng đến trang frontend phù hợp.
-        """
         result_code = request.query_params.get('resultCode')
 
-        # Kiểm tra kết quả giao dịch
         if result_code == '0':
-            # Chuyển hướng đến trang thành công ở frontend
             return redirect("http://localhost:3000/payment-success")
         else:
-            # Chuyển hướng đến trang thất bại ở frontend
             return redirect("http://localhost:3000/payment-failure")
 
 
 class StatsViewSet(viewsets.ViewSet):
-    """
-    ViewSet này cung cấp các API để lấy dữ liệu thống kê.
-    Chỉ có Quản lý và Admin mới có quyền truy cập.
-    """
     permission_classes = [perms.IsManagerUser]
 
     @action(methods=['get'], detail=False, url_path='revenue')
     def revenue_stats(self, request):
-        """
-        Thống kê doanh thu theo từng tháng trong một năm cụ thể.
-        Ví dụ: /stats/revenue/?year=2025
-        """
         try:
-            # Lấy năm từ query param, mặc định là năm hiện tại
             year = request.query_params.get('year', datetime.now().year)
 
-            # Truy vấn các hóa đơn đã hoàn thành, nhóm theo tháng và tính tổng doanh thu
             stats = Order.objects.filter(
                 created_date__year=year,
                 status='COMPLETED'
@@ -657,43 +592,28 @@ class StatsViewSet(viewsets.ViewSet):
 
     @action(methods=['get'], detail=False, url_path='dish-popularity')
     def dish_popularity_stats(self, request):
-        """
-        Thống kê tần suất gọi món của các món ăn.
-        """
         stats = Dish.objects.annotate(
-            order_count=Count('order_details')  # Đếm số lần xuất hiện trong chi tiết hóa đơn
+            order_count=Count('order_details')
         ).filter(order_count__gt=0).values('id', 'name', 'order_count').order_by('-order_count')
 
         return Response(stats)
 
 
-#CHATBOXAI
 class ChatbotViewSet(viewsets.ViewSet):
-    """
-    ViewSet này cung cấp một API để người dùng có thể trò chuyện với AI
-    để được tư vấn về món ăn.
-    """
-    # Bất kỳ ai cũng có thể hỏi, không cần đăng nhập
     permission_classes = [permissions.AllowAny]
 
     @action(methods=['post'], detail=False, url_path='ask')
     def ask(self, request):
-        """
-        Nhận câu hỏi từ người dùng, gửi đến Gemini và trả về câu trả lời.
-        Input: { "message": "Tôi muốn ăn gì đó cay cay." }
-        """
         user_message = request.data.get('message')
         if not user_message:
             return Response({'error': 'Vui lòng nhập câu hỏi của bạn.'}, status=400)
 
         try:
-            # 1. Lấy toàn bộ thực đơn từ database để làm "kiến thức" cho AI
             all_dishes = Dish.objects.filter(is_active=True)
             menu_context = "\n".join(
                 [f"- Tên món: {d.name}, Mô tả: {d.description or 'Không có'}, Giá: {d.price} VND" for d in all_dishes]
             )
 
-            # 2. Tạo "chỉ thị hệ thống" để hướng dẫn AI
             system_prompt = (
                 "Bạn là một nhân viên tư vấn món ăn thân thiện và chuyên nghiệp của nhà hàng Tâm An. "
                 "Kiến thức duy nhất của bạn là danh sách thực đơn được cung cấp dưới đây. "
@@ -704,7 +624,6 @@ class ChatbotViewSet(viewsets.ViewSet):
                 f"\n\n--- THỰC ĐƠN ---\n{menu_context}"
             )
 
-            # 3. Gửi yêu cầu đến Google Gemini API
             api_key = getattr(settings, 'GEMINI_API_KEY', None)
             if not api_key:
                 return Response({'error': 'Chưa cấu hình API Key cho dịch vụ AI.'}, status=500)
@@ -719,7 +638,6 @@ class ChatbotViewSet(viewsets.ViewSet):
             response = requests.post(api_url, json=payload, headers={'Content-Type': 'application/json'})
             response.raise_for_status()
 
-            # 4. Trích xuất và trả về câu trả lời của AI
             result_json = response.json()
             ai_reply = result_json['candidates'][0]['content']['parts'][0]['text']
 
@@ -738,10 +656,6 @@ class PasswordResetViewSet(viewsets.ViewSet):
 
     @action(methods=['post'], detail=False, url_path='request-reset')
     def request_password_reset(self, request):
-        """
-        Nhận email từ người dùng và gửi link đặt lại mật khẩu.
-        Input: { "email": "user@example.com" }
-        """
         email = request.data.get('email')
         if not email:
             return Response({'error': 'Vui lòng cung cấp email.'}, status=400)
@@ -749,14 +663,11 @@ class PasswordResetViewSet(viewsets.ViewSet):
         try:
             user = User.objects.get(email=email)
 
-            # Tạo token và uid để gửi trong email
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-            # Tạo đường link đến trang frontend
             reset_link = f"http://localhost:3000/reset-password/{uid}/{token}/"
 
-            # Gửi email
             subject = "Yêu cầu đặt lại mật khẩu tại Nhà hàng Tâm An"
             context = {'reset_link': reset_link, 'user': user}
             html_message = render_to_string('emails/password_reset_email.html', context)
@@ -769,20 +680,14 @@ class PasswordResetViewSet(viewsets.ViewSet):
                 html_message=html_message
             )
         except User.DoesNotExist:
-            # Không báo lỗi để tránh kẻ xấu dò email, chỉ ghi log
             logging.warning(f"Yêu cầu đặt lại mật khẩu cho email không tồn tại: {email}")
         except Exception as e:
             logging.error(f"Lỗi khi gửi email đặt lại mật khẩu: {e}")
 
-        # Luôn trả về thành công để bảo mật
         return Response({'message': 'Nếu email của bạn tồn tại trong hệ thống, bạn sẽ nhận được một email hướng dẫn.'})
 
     @action(methods=['post'], detail=False, url_path='confirm')
     def confirm_password_reset(self, request):
-        """
-        Nhận token, uid và mật khẩu mới để hoàn tất việc đặt lại.
-        Input: { "uid": "...", "token": "...", "password": "..." }
-        """
         uid = request.data.get('uid')
         token = request.data.get('token')
         password = request.data.get('password')

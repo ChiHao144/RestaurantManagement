@@ -3,7 +3,6 @@ import { Container, Row, Col, Card, Spinner, Alert, Badge, Dropdown } from 'reac
 import { authApi, endpoints } from '../../configs/Apis';
 import { UserContext } from '../../configs/UserContext';
 
-// Hàm hỗ trợ để lấy màu sắc và văn bản cho từng trạng thái
 const getStatusProps = (status) => {
     switch (status) {
         case 'AVAILABLE':
@@ -23,7 +22,6 @@ const TableStatusDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Hàm tải danh sách bàn và trạng thái từ API
     const loadTables = async () => {
         try {
             setLoading(true);
@@ -37,7 +35,6 @@ const TableStatusDashboard = () => {
         }
     };
 
-    // Tải dữ liệu khi component được mount
     useEffect(() => {
         if (user && ['WAITER', 'MANAGER', 'ADMIN'].includes(user.role)) {
             loadTables();
@@ -47,22 +44,18 @@ const TableStatusDashboard = () => {
         }
     }, [user]);
 
-    // Hàm xử lý khi nhân viên thay đổi trạng thái bàn
     const handleStatusChange = async (tableId, newStatus) => {
         try {
-            // Cập nhật giao diện ngay lập tức để người dùng thấy thay đổi
             setTables(currentTables => 
                 currentTables.map(t => t.id === tableId ? { ...t, status: newStatus } : t)
             );
 
-            // Gửi yêu cầu cập nhật lên server
             await authApi().patch(endpoints['update-table-status'](tableId), {
                 status: newStatus
             });
         } catch (err) {
             console.error(`Lỗi khi cập nhật bàn ${tableId}:`, err);
             alert("Cập nhật thất bại. Dữ liệu sẽ được hoàn tác.");
-            // Tải lại dữ liệu từ server nếu có lỗi để đảm bảo tính nhất quán
             loadTables();
         }
     };
@@ -98,13 +91,13 @@ const TableStatusDashboard = () => {
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu className="w-100">
                                             <Dropdown.Item onClick={() => handleStatusChange(table.id, 'AVAILABLE')} disabled={table.status === 'AVAILABLE'}>
-                                                ✅ Trống
+                                                Trống
                                             </Dropdown.Item>
                                             <Dropdown.Item onClick={() => handleStatusChange(table.id, 'OCCUPIED')} disabled={table.status === 'OCCUPIED'}>
-                                                🔴 Đang phục vụ
+                                                Đang phục vụ
                                             </Dropdown.Item>
                                             <Dropdown.Item onClick={() => handleStatusChange(table.id, 'CLEANING')} disabled={table.status === 'CLEANING'}>
-                                                🟡 Cần dọn dẹp
+                                                Cần dọn dẹp
                                             </Dropdown.Item>
                                         </Dropdown.Menu>
                                     </Dropdown>

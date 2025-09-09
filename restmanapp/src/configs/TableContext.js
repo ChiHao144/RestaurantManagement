@@ -5,7 +5,7 @@ export const TableContext = createContext();
 export const TableProvider = ({ children }) => {
     const [tableId, setTableId] = useState(null);
 
-    // Tự động tải mã bàn từ sessionStorage khi ứng dụng khởi động
+    
     useEffect(() => {
         const storedTableId = sessionStorage.getItem('currentTableId');
         if (storedTableId) {
@@ -13,7 +13,7 @@ export const TableProvider = ({ children }) => {
         }
     }, []);
 
-    // Hàm để thiết lập bàn mới và lưu vào sessionStorage
+    
     const setCurrentTable = (id) => {
         if (id) {
             sessionStorage.setItem('currentTableId', id);

@@ -69,10 +69,7 @@ class TableSerializer(serializers.ModelSerializer):
         fields = ['id', 'table_number', 'capacity', 'status']
 
 class BookingDetailSerializer(serializers.ModelSerializer):
-    """Serializer cho Chi tiết Đặt bàn."""
-    # Thêm table serializer để trả về thông tin bàn đầy đủ hơn
     table = TableSerializer(read_only=True)
-    # Thêm trường table_id để nhận ID bàn khi ghi dữ liệu
     table_id = serializers.IntegerField(write_only=True)
 
     class Meta:
@@ -80,19 +77,13 @@ class BookingDetailSerializer(serializers.ModelSerializer):
         fields = ['table', 'table_id', 'start_time', 'end_time', 'note']
 
 class BookingSerializer(serializers.ModelSerializer):
-    """Serializer cho Đơn Đặt Bàn."""
-    # [THAY ĐỔI] details giờ là read_only.
-    # Nó chỉ dùng để hiển thị kết quả, không thể dùng để tạo/sửa trực tiếp.
     details = BookingDetailSerializer(many=True, read_only=True)
     user = UserSerializer(read_only=True)
 
     class Meta:
         model = Booking
-        # [THAY ĐỔI] Xóa 'details' khỏi danh sách các trường có thể ghi.
         fields = ['id', 'user', 'booking_time', 'number_of_guests', 'note', 'status', 'details']
         read_only_fields = ['status']
-
-    # [THAY ĐỔI] Không cần ghi đè phương thức create nữa vì logic đã được đơn giản hóa.
 
 class OrderDetailDishSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(use_url=True)

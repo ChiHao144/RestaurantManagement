@@ -9,7 +9,7 @@ moment.locale('vi');
 
 const AssignTable = () => {
     const { user } = useContext(UserContext);
-    const { bookingId } = useParams(); // Lấy ID của đơn đặt bàn từ URL
+    const { bookingId } = useParams(); 
     const navigate = useNavigate();
 
     const [booking, setBooking] = useState(null);
@@ -26,13 +26,10 @@ const AssignTable = () => {
                 setLoading(true);
                 setError(null);
 
-                // Bước 1: Lấy thông tin chi tiết của đơn đặt bàn
                 const bookingRes = await authApi().get(endpoints['booking-detail'](bookingId));
                 const bookingData = bookingRes.data;
                 setBooking(bookingData);
 
-                // Bước 2: Dùng thông tin đó để tìm bàn trống
-                // Giả sử mỗi lượt khách ngồi 2 tiếng
                 const startTime = moment(bookingData.booking_time);
                 const endTime = moment(bookingData.booking_time).add(2, 'hours');
 
@@ -59,7 +56,6 @@ const AssignTable = () => {
     const handleTableSelect = (tableId) => {
         setSelectedTables(prev => {
             if (prev.includes(tableId)) {
-                // Nếu bỏ chọn, xóa luôn ghi chú của bàn đó
                 const newNotes = { ...staffNotes };
                 delete newNotes[tableId];
                 setStaffNotes(newNotes);
@@ -70,7 +66,6 @@ const AssignTable = () => {
         });
     };
 
-    // [MỚI] Hàm cập nhật ghi chú cho một bàn cụ thể
     const handleNoteChange = (tableId, note) => {
         setStaffNotes(prev => ({
             ...prev,
@@ -92,12 +87,11 @@ const AssignTable = () => {
             const startTime = moment(booking.booking_time);
             const endTime = moment(booking.booking_time).add(2, 'hours');
 
-            // [MỚI] Thêm ghi chú vào payload gửi đi
             const detailsPayload = selectedTables.map(tableId => ({
                 table_id: tableId,
                 start_time: startTime.toISOString(),
                 end_time: endTime.toISOString(),
-                note: staffNotes[tableId] || '' // Lấy ghi chú của bàn, nếu không có thì gửi chuỗi rỗng
+                note: staffNotes[tableId] || '' 
             }));
 
             await authApi().post(endpoints['assign-details'](bookingId), {
@@ -107,7 +101,7 @@ const AssignTable = () => {
             
 
             alert("Gán bàn và xác nhận đơn thành công!");
-            navigate("/manager"); // Chuyển về trang quản lý
+            navigate("/manager"); 
 
         } catch (err) {
             console.error("Lỗi khi gán bàn:", err);
@@ -133,7 +127,6 @@ const AssignTable = () => {
         <Container className="my-5">
             <h1 className="text-center text-dark mb-4">XÁC NHẬN VÀ GÁN BÀN</h1>
             <Row>
-                {/* Cột thông tin đơn đặt bàn */}
                 <Col md={5}>
                     <h2 className="h4 mb-3">Thông tin yêu cầu</h2>
                     <Card>
@@ -147,7 +140,6 @@ const AssignTable = () => {
                     </Card>
                 </Col>
 
-                {/* Cột chọn bàn */}
                 <Col md={7}>
                     <h2 className="h4 mb-3">Chọn bàn trống phù hợp</h2>
                     {availableTables.length > 0 ? (
@@ -162,7 +154,6 @@ const AssignTable = () => {
                                             checked={selectedTables.includes(table.id)}
                                             onChange={() => handleTableSelect(table.id)}
                                         />
-                                        {/* [MỚI] Ô ghi chú chỉ hiện ra khi bàn được chọn */}
                                         {selectedTables.includes(table.id) && (
                                             <Form.Control
                                                 as="textarea"

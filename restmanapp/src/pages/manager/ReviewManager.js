@@ -6,7 +6,6 @@ import { UserContext } from '../../configs/UserContext';
 import moment from 'moment';
 import 'moment/locale/vi';
 
-// Component để hiển thị số sao đánh giá
 const StarRating = ({ rating }) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -25,8 +24,7 @@ const ReviewManagement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // State để quản lý việc phản hồi
-    const [replyingTo, setReplyingTo] = useState(null); // Lưu ID của review đang được phản hồi
+    const [replyingTo, setReplyingTo] = useState(null); 
     const [replyContent, setReplyContent] = useState('');
 
     const loadReviews = useCallback(async () => {
@@ -58,7 +56,6 @@ const ReviewManagement = () => {
         loadReviews();
     }, [loadReviews]);
 
-    // Hàm xử lý khi gửi một phản hồi
     const handleReplySubmit = async (e, reviewId) => {
         e.preventDefault();
         try {
@@ -107,7 +104,6 @@ const ReviewManagement = () => {
                                         <StarRating rating={r.rating} />
                                         <p className="mt-2 mb-0">{r.content}</p>
 
-                                        {/* Hiển thị các phản hồi của nhà hàng */}
                                         {r.replies && r.replies.length > 0 && (
                                             <div className="mt-3 ms-4 border-start ps-3">
                                                 <h6 className="fw-bold">Phản hồi từ nhà hàng:</h6>
@@ -123,7 +119,6 @@ const ReviewManagement = () => {
                                             </div>
                                         )}
 
-                                        {/* Nút và Form để nhân viên phản hồi */}
                                         <div className="mt-2">
                                             {replyingTo === r.id ? (
                                                 <Form onSubmit={(e) => handleReplySubmit(e, r.id)}>
@@ -136,7 +131,6 @@ const ReviewManagement = () => {
                                                     <Button size="sm" variant="secondary" className="ms-2" onClick={() => setReplyingTo(null)}>Hủy</Button>
                                                 </Form>
                                             ) : (
-                                                 // Chỉ hiện nút phản hồi nếu chưa có phản hồi nào
                                                  (!r.replies || r.replies.length === 0) && (
                                                     <Button variant="outline-success" size="sm" onClick={() => setReplyingTo(r.id)}>
                                                         Phản hồi

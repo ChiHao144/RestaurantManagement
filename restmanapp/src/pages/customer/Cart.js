@@ -92,7 +92,6 @@ const Cart = () => {
     );
   }
 
-  // Nút đặt hàng tùy theo quy trình
   const renderOrderButton = () => {
     if (tableId) {
       return (
@@ -200,7 +199,6 @@ const Cart = () => {
           ))}
         </Col>
 
-        {/* Tổng kết đơn hàng */}
         <Col md={4}>
           <Card className="p-3 shadow-sm border-0">
             <h4 className="fw-bold text-danger">Tóm tắt đơn hàng</h4>
@@ -211,7 +209,6 @@ const Cart = () => {
               </span>
             </p>
 
-            {/* Chỉ hiển thị chọn thanh toán cho online */}
             {!tableId && (
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold">

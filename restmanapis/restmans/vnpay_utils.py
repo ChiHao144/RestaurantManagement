@@ -10,10 +10,6 @@ class Vnpay:
         self.response_data = {}
 
     def get_payment_url(self):
-        """
-        Tạo URL thanh toán.
-        Logic được sao chép 1-1 từ file vnpay.py của demo.
-        """
         input_data = sorted(self.request_data.items())
         query_string = ""
         i = 0
@@ -31,15 +27,10 @@ class Vnpay:
         return f"{settings.VNPAY_ENDPOINT}?{query_string}&vnp_SecureHash={secure_hash}"
 
     def validate_response(self, response_data):
-        """
-        Xác thực phản hồi (IPN) từ VNPay.
-        Logic được sao chép 1-1 từ file vnpay.py của demo.
-        """
         vnp_secure_hash = response_data.get('vnp_SecureHash', None)
         if not vnp_secure_hash:
             return False
 
-        # Xóa các trường hash khỏi dữ liệu để xác thực
         if 'vnp_SecureHash' in response_data:
             del response_data['vnp_SecureHash']
         if 'vnp_SecureHashType' in response_data:

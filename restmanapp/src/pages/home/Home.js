@@ -1,15 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import {
-    Container,
-    Row,
-    Col,
-    Card,
-    Button,
-    Spinner,
-    Alert,
-    Form,
-    FormControl,
-} from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Spinner, Alert, Form, FormControl, } from "react-bootstrap";
 import { Link, useParams } from "react-router-dom";
 import Apis, { endpoints } from "../../configs/Apis";
 import { CartContext } from "../../configs/CartContext";
@@ -17,20 +7,17 @@ import { CartContext } from "../../configs/CartContext";
 const Home = () => {
     const { categoryName } = useParams();
     const { addToCart } = useContext(CartContext);
-
     const [dishes, setDishes] = useState([]);
     const [allCategories, setAllCategories] = useState([]);
-    const [loading, setLoading] = useState(false); // spinner nhỏ khi filter đổi
-    const [loadingMore, setLoadingMore] = useState(false); // spinner khi load thêm
+    const [loading, setLoading] = useState(false); 
+    const [loadingMore, setLoadingMore] = useState(false); 
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-
-    // Search
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedQuery, setDebouncedQuery] = useState("");
 
-    // Lấy categories 1 lần
+
     useEffect(() => {
         const loadCategories = async () => {
             try {
@@ -43,11 +30,10 @@ const Home = () => {
         loadCategories();
     }, []);
 
-    // Debounce search
     useEffect(() => {
         const timerId = setTimeout(() => {
             setDebouncedQuery(searchQuery);
-            setPage(1); // reset về trang 1 khi đổi search
+            setPage(1); 
         }, 500);
         return () => clearTimeout(timerId);
     }, [searchQuery]);
@@ -68,7 +54,6 @@ const Home = () => {
                 const params = new URLSearchParams();
                 params.append("page", page);
 
-                // lọc theo category
                 if (categoryName) {
                     const category = allCategories.find((c) => c.name === categoryName);
                     if (category) {
@@ -82,7 +67,6 @@ const Home = () => {
                     }
                 }
 
-                // lọc theo search
                 if (debouncedQuery) {
                     params.append("q", debouncedQuery);
                 }
@@ -97,7 +81,6 @@ const Home = () => {
                     setDishes((prev) => [...prev, ...results]);
                 }
 
-                // ✅ Fix pagination: chỉ hiển thị "Xem thêm" khi còn next
                 setHasMore(!!res.data.next);
             } catch (err) {
                 console.error("Lỗi khi tải món ăn:", err);
@@ -128,10 +111,9 @@ const Home = () => {
                 className="text-center mb-4 fw-bold"
                 style={{ color: "#8B0000" }}
             >
-                THỰC ĐƠN NHÀ HÀNG TÂM AN 
+                THỰC ĐƠN NHÀ HÀNG TÂM AN
             </h1>
 
-            {/* Search */}
             <Form className="mb-4" onSubmit={(e) => e.preventDefault()}>
                 <div
                     style={{
@@ -170,7 +152,6 @@ const Home = () => {
                 </div>
             </Form>
 
-            {/* Spinner overlay khi filter đổi */}
             {loading && (
                 <div className="text-center my-3">
                     <Spinner animation="border" variant="danger" />
@@ -233,7 +214,7 @@ const Home = () => {
                                                 style={{ backgroundColor: "#8B0000", border: "none" }}
                                                 onClick={() => addToCart(dish)}
                                             >
-                                                Thêm vào giỏ 
+                                                Thêm vào giỏ
                                             </Button>
                                         </div>
                                     </div>
@@ -244,7 +225,6 @@ const Home = () => {
                 </Row>
             )}
 
-            {/* Nút xem thêm */}
             {hasMore && !loading && (
                 <div className="text-center my-4">
                     <Button

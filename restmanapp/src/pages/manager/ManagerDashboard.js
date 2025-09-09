@@ -18,7 +18,6 @@ const ManagerDashboard = () => {
                 try {
                     setLoading(true);
                     setError(null);
-                    // Nhân viên/quản lý có thể xem tất cả các đơn
                      const res = await authApi().get(endpoints['pending-bookings']);
                     setPendingBookings(res.data);
                 } catch (err) {
@@ -33,7 +32,6 @@ const ManagerDashboard = () => {
         loadPendingBookings();
     }, [user]);
 
-    // Kiểm tra quyền truy cập
     if (!user || !['WAITER', 'MANAGER', 'ADMIN'].includes(user.role)) {
         return <Navigate to="/" />;
     }

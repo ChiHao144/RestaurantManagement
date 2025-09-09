@@ -33,16 +33,13 @@ const BookingHistory = () => {
         loadBookings();
     }, [user]);
 
-    // [MỚI] Hàm xử lý hủy đơn đặt bàn
     const cancelBooking = async (bookingId) => {
-        // Sử dụng window.confirm thay vì alert để người dùng xác nhận
         if (window.confirm("Bạn có chắc chắn muốn hủy yêu cầu đặt bàn này không?")) {
             try {
                 const res = await authApi().patch(endpoints['cancel-booking'](bookingId));
-                // Cập nhật lại trạng thái của đơn vừa hủy trong danh sách mà không cần tải lại trang
                 setBookings(currentBookings => currentBookings.map(b => {
                     if (b.id === bookingId) {
-                        return res.data; // Thay thế đơn cũ bằng đơn đã cập nhật từ API
+                        return res.data; 
                     }
                     return b;
                 }));
@@ -128,7 +125,6 @@ const BookingHistory = () => {
                                             </>
                                         )}
                                     </Card.Body>
-                                    {/* [MỚI] Nút hủy chỉ hiển thị khi đơn có thể hủy */}
                                     {isCancellable && (
                                         <Card.Footer className="text-end">
                                             <Button variant="danger" size="sm" onClick={() => cancelBooking(booking.id)}>

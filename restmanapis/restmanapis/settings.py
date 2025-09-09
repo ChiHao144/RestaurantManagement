@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'oauth2_provider',
     'corsheaders',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [
@@ -59,35 +60,27 @@ MIDDLEWARE = [
 ]
 
 # === CẤU HÌNH GỬI EMAIL ===
-# Sử dụng backend SMTP của Django
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# Máy chủ gửi mail của Gmail
 EMAIL_HOST = 'smtp.gmail.com'
-# Cổng SMTP
 EMAIL_PORT = 587
-# Sử dụng Transport Layer Security (TLS)
 EMAIL_USE_TLS = True
-# Tài khoản email của bạn
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-# Mật khẩu ứng dụng của tài khoản email
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-# Email mặc định sẽ hiển thị ở phần "From"
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
-# Cấu hình MoMo - BẠN NÊN ĐẶT CÁC GIÁ TRỊ NÀY TRONG settings.py
+# === CẤU HÌNH MOMO ===
 MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
-MOMO_PARTNER_CODE = "MOMO"  # Thay bằng Partner Code của bạn
-MOMO_ACCESS_KEY = config("MOMO_ACCESS_KEY")  # Thay bằng Access Key của bạn
-MOMO_SECRET_KEY = config("MOMO_SECRET_KEY")  # Thay bằng Secret Key của bạn
-MOMO_IPN_URL = "https://006a26554c86.ngrok-free.app/momo/"  # Thay bằng URL IPN thật của bạn
-MOMO_REDIRECT_URL = "https://006a26554c86.ngrok-free.app/momo/return"  # Thay bằng URL Redirect thật của bạn
+MOMO_PARTNER_CODE = "MOMO"
+MOMO_ACCESS_KEY = config("MOMO_ACCESS_KEY")
+MOMO_SECRET_KEY = config("MOMO_SECRET_KEY")
+MOMO_IPN_URL = "https://006a26554c86.ngrok-free.app/momo/"
+MOMO_REDIRECT_URL = "https://006a26554c86.ngrok-free.app/momo/return"
 
 # === CẤU HÌNH VNPAY ===
 VNPAY_ENDPOINT = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-VNPAY_TMNCODE = config("VNPAY_TMNCODE")  # Lấy từ VNPay
-VNPAY_HASH_SECRET_KEY = config("VNPAY_HASH_SECRET_KEY") # Lấy từ VNPay
-VNPAY_RETURN_URL = "https://006a26554c86.ngrok-free.app/vnpay/return/" # URL front-end để khách hàng quay về
-# URL IPN cần ngrok để test, ví dụ: "https://your-ngrok.ngrok-free.app/vnpay/ipn/"
+VNPAY_TMNCODE = config("VNPAY_TMNCODE")
+VNPAY_HASH_SECRET_KEY = config("VNPAY_HASH_SECRET_KEY")
+VNPAY_RETURN_URL = "https://006a26554c86.ngrok-free.app/vnpay/return/"
 VNPAY_IPN_URL = "https://006a26554c86.ngrok-free.app/vnpay/"
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -197,71 +190,46 @@ CLIENT_SECRET = config("CLIENT_SECRET")
 GEMINI_API_KEY = config("GEMINI_API_KEY")
 
 JAZZMIN_SETTINGS = {
-    # Tiêu đề hiển thị trên tab trình duyệt (tối đa 50 ký tự)
     "site_title": "Quản trị Nhà hàng Tâm An",
-
-    # Tiêu đề hiển thị trên trang đăng nhập và trên cùng bên trái
     "site_header": "Nhà hàng Tâm An",
+    "site_brand": "Hệ thống Quản lý",
+    "welcome_sign": "Xin chào quản trị viên",
+    "copyright": "© Nhà hàng Tâm An",
 
-    # Logo cho trang quản trị. Đặt file logo vào thư mục static của bạn.
-    # Ví dụ: "img/logo.png"
-    "site_logo": "path/to/your/logo.png",
-
-    # Logo hiển thị trên trang đăng nhập
-    "login_logo": "path/to/your/login_logo.png",
-
-    # Chữ hiển thị ở cuối trang
-    "copyright": "Nhà hàng Tâm An Ltd",
-
-    # === GIAO DIỆN ===
-    # Sử dụng theme mặc định (có thể đổi sang các theme khác như "cerulean", "cyborg", "darkly", ...)
-    "theme": "default",
-
-    # Giao diện cho các nút bấm và thành phần
-    "UI_TWEAKS": {
-        "navbar_small_text": False,
-        "footer_small_text": False,
-        "body_small_text": False,
-        "brand_small_text": False,
-        "brand_colour": "navbar-success",  # Màu của header
-        "accent": "accent-primary",
-        "navbar": "navbar-dark",
-        "no_navbar_border": False,
-        "sidebar": "sidebar-dark-primary",  # Màu của sidebar
-        "sidebar_nav_small_text": False,
-        "sidebar_disable_expand": False,
-        "sidebar_nav_child_indent": False,
-        "sidebar_nav_compact_style": False,
-        "sidebar_nav_legacy_style": False,
-        "sidebar_nav_flat_style": False,
-        "theme": "default",
-        "button_classes": {
-            "primary": "btn-primary",
-            "secondary": "btn-secondary",
-            "info": "btn-info",
-            "warning": "btn-warning",
-            "danger": "btn-danger",
-            "success": "btn-success"
-        }
-    },
-
-    # === MENU BÊN CẠNH (SIDEBAR) ===
-    # Tùy chỉnh các icon và thứ tự hiển thị của các model
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
-        "restmans.Category": "fas fa-utensils",
-        "restmans.Dish": "fas fa-concierge-bell",
+        "restmans.Category": "fas fa-list",
+        "restmans.Dish": "fas fa-utensils",
         "restmans.Order": "fas fa-file-invoice-dollar",
         "restmans.Table": "fas fa-chair",
         "restmans.Booking": "fas fa-calendar-check",
         "restmans.Review": "fas fa-star",
     },
 
-    # Hiển thị model nào lên đầu
+    "hide_apps": ["oauth2_provider", "drf_yasg", "corsheaders"],
+
     "topmenu_links": [
-        {"name": "Trang chủ", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"app": "restmans", "name": "Quản lý Nhà hàng"},
+        {"name": "Trang chủ", "url": "admin:index"},
+        {"name": "Thống kê", "url": "/admin/statistics/"},
+        {"app": "restmans"},
     ],
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "default",
+    "navbar": "navbar-dark",
+    "brand_colour": "navbar-success",
+    "accent": "accent-primary",
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": True,
+    "button_classes": {
+        "primary": "btn btn-success",
+        "secondary": "btn btn-secondary",
+        "info": "btn btn-info",
+        "warning": "btn btn-warning",
+        "danger": "btn btn-danger",
+    },
 }

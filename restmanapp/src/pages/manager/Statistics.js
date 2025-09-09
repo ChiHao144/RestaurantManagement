@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Spinner, Alert } from 'react-bootstrap'; // [MỚI] Thêm Button
+import { Container, Row, Col, Card, Form, Spinner, Alert } from 'react-bootstrap'; 
 import { Bar, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { authApi, endpoints } from '../../configs/Apis';
 import moment from 'moment';
-import { CSVLink } from 'react-csv'; // [MỚI] Import thư viện xuất CSV
+import { CSVLink } from 'react-csv'; 
 
-// Đăng ký các thành phần cần thiết cho Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const Statistics = () => {
@@ -20,7 +19,6 @@ const Statistics = () => {
         const loadStats = async () => {
             setLoading(true);
             try {
-                // Tải đồng thời cả hai loại thống kê
                 const [revenueRes, dishRes] = await Promise.all([
                     authApi().get(`${endpoints['stats-revenue']}?year=${year}`),
                     authApi().get(endpoints['stats-dishes'])
@@ -36,9 +34,8 @@ const Statistics = () => {
         };
 
         loadStats();
-    }, [year]); // Tải lại khi năm thay đổi
+    }, [year]); 
 
-    // Chuẩn bị dữ liệu cho biểu đồ doanh thu
     const revenueChartData = {
         labels: revenueStats?.map(s => moment(s.month).format('MM/YYYY')) || [],
         datasets: [{
@@ -48,7 +45,6 @@ const Statistics = () => {
         }],
     };
 
-    // Chuẩn bị dữ liệu cho biểu đồ món ăn
     const dishChartData = {
         labels: dishStats?.map(d => d.name) || [],
         datasets: [{
@@ -64,7 +60,6 @@ const Statistics = () => {
         }],
     };
     
-    // [MỚI] Chuẩn bị dữ liệu để xuất file CSV cho Doanh thu
     const revenueCsvData = revenueStats?.map(s => ({
         month: moment(s.month).format('MM/YYYY'),
         total: s.total
@@ -74,14 +69,12 @@ const Statistics = () => {
         { label: "Doanh thu (VNĐ)", key: "total" }
     ];
 
-    // [MỚI] Chuẩn bị dữ liệu để xuất file CSV cho Món ăn
     const dishCsvData = dishStats || [];
     const dishCsvHeaders = [
         { label: "Tên món ăn", key: "name" },
         { label: "Số lượt gọi", key: "order_count" }
     ];
     
-    // Tạo danh sách các năm để lựa chọn
     const generateYearOptions = () => {
         const currentYear = new Date().getFullYear();
         const years = [];
@@ -115,7 +108,6 @@ const Statistics = () => {
                     <Card className="shadow-sm">
                         <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
                             Biểu đồ doanh thu hàng tháng
-                            {/* [MỚI] Nút xuất báo cáo doanh thu */}
                             <CSVLink
                                 data={revenueCsvData}
                                 headers={revenueCsvHeaders}
@@ -134,7 +126,6 @@ const Statistics = () => {
                     <Card className="shadow-sm">
                         <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
                             Món ăn được gọi nhiều nhất
-                             {/* [MỚI] Nút xuất báo cáo món ăn */}
                             <CSVLink
                                 data={dishCsvData}
                                 headers={dishCsvHeaders}

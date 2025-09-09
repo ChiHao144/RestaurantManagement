@@ -1,0 +1,121 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">{{ title }}</h1>
+
+    <!-- Bộ lọc -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="d-flex align-items-end gap-3">
+                <div>
+                    <label for="year" class="form-label">Chọn Năm</label>
+                    <select name="year" id="year" class="form-select">
+                        {% for y in year_options %}
+                        <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Xem báo cáo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Các chỉ số KPI -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng Doanh thu</h5>
+                    <p class="card-text fs-3 fw-bold">{{ total_revenue|intcomma }} VNĐ</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng số Đơn hàng (Hoàn thành)</h5>
+                    <p class="card-text fs-3 fw-bold">{{ total_completed_orders }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng số Khách (Đã phục vụ)</h5>
+                    <p class="card-text fs-3 fw-bold">{{ total_guests_served }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Các biểu đồ -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header">Biểu đồ Doanh thu theo Tháng (Năm {{ current_year }})</div>
+                <div class="card-body">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header">Top 10 Món ăn được gọi nhiều nhất</div>
+                <div class="card-body">
+                    <canvas id="dishPopularityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ revenue_by_month|json_script:"revenue-data" }}
+{{ dish_popularity|json_script:"dish-popularity-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- Biểu đồ Doanh thu ---
+        const revenueData = JSON.parse(document.getElementById('revenue-data').textContent);
+        const revenueLabels = Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`);
+        const revenueValues = Array(12).fill(0);
+        revenueData.forEach(item => {
+            const monthIndex = new Date(item.month).getMonth();
+            revenueValues[monthIndex] = item.total;
+        });
+
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueValues,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                }]
+            },
+        });
+
+        // --- Biểu đồ Tần suất Món ăn ---
+        const dishData = JSON.parse(document.getElementById('dish-popularity-data').textContent);
+        const dishLabels = dishData.map(d => d.name);
+        const dishValues = dishData.map(d => d.order_count);
+
+        new Chart(document.getElementById('dishPopularityChart'), {
+            type: 'doughnut',
+            data: {
+                labels: dishLabels,
+                datasets: [{
+                    label: 'Số lượt gọi',
+                    data: dishValues,
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                        '#FF9F40', '#C9CBCF', '#E7E9ED', '#8DDF3E', '#F172A1'
+                    ],
+                }]
+            },
+        });
+    });
+</script>
+{% endblock %}

@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import {
-    Container,
-    Row,
-    Col,
-    Image,
-    Card,
-    Spinner,
-    Alert,
-    Form,
-    Button,
-    ListGroup
-} from 'react-bootstrap';
+import { Container, Row, Col, Image, Card, Spinner, Alert, Form, Button, ListGroup } from 'react-bootstrap';
 import { useParams, Link } from 'react-router-dom';
 import Apis, { authApi, endpoints } from "../../configs/Apis";
 import moment from 'moment';
@@ -18,7 +7,6 @@ import 'moment/locale/vi';
 import { UserContext } from '../../configs/UserContext';
 import { CartContext } from '../../configs/CartContext';
 
-// ⭐ Component hiển thị số sao
 const StarRating = ({ rating, size = 'md' }) => {
     const stars = [];
     const starSize = size === 'sm' ? '1rem' : '1.5rem';
@@ -48,7 +36,6 @@ const DishDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // State cho review
     const [newReviewContent, setNewReviewContent] = useState('');
     const [newReviewRating, setNewReviewRating] = useState(5);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +62,6 @@ const DishDetail = () => {
         loadData();
     }, [dishId]);
 
-    // ➕ Thêm review mới
     const handleAddReview = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -94,7 +80,6 @@ const DishDetail = () => {
         }
     };
 
-    // 🗑️ Xóa review
     const handleDeleteReview = async (reviewId) => {
         if (window.confirm("Bạn có chắc chắn muốn xóa đánh giá này không?")) {
             try {
@@ -106,7 +91,6 @@ const DishDetail = () => {
         }
     };
 
-    // ✏️ Cập nhật review
     const handleUpdateReview = async (e) => {
         e.preventDefault();
         try {
@@ -150,7 +134,6 @@ const DishDetail = () => {
 
     return (
         <Container className="my-4">
-            {/* Chi tiết món ăn */}
             <Row>
                 <Col md={5}>
                     <Image src={dish.image} alt={dish.name} fluid rounded className="shadow" />
@@ -163,19 +146,17 @@ const DishDetail = () => {
                         {parseInt(dish.price).toLocaleString('vi-VN')} VNĐ
                     </p>
                     <Button variant="dark" size="lg" onClick={() => addToCart(dish)}>
-                        Thêm vào giỏ 
+                        Thêm vào giỏ
                     </Button>
                 </Col>
             </Row>
 
             <hr className="my-5" />
 
-            {/* Đánh giá */}
             <Row>
                 <Col md={7}>
                     <h3 className="mb-3">Đánh giá từ khách hàng</h3>
 
-                    {/* Điểm trung bình */}
                     <div className="d-flex align-items-center mb-4 p-3 bg-light rounded">
                         <span className="display-4 me-3">{calculateAverageRating()}</span>
                         <div>
@@ -204,7 +185,6 @@ const DishDetail = () => {
                                             </small>
                                         </div>
 
-                                        {/* Nếu đang edit */}
                                         {editingReview && editingReview.id === r.id ? (
                                             <Form onSubmit={handleUpdateReview} className="mt-2">
                                                 <Form.Group className="mb-2">
@@ -256,7 +236,6 @@ const DishDetail = () => {
                                             </>
                                         )}
 
-                                        {/* Nút sửa/xóa */}
                                         {user && user.username === r.user.username && !editingReview && (
                                             <div className="mt-2">
                                                 <Button
@@ -284,7 +263,6 @@ const DishDetail = () => {
                                         )}
 
 
-                                        {/* Hiển thị phản hồi nhân viên */}
                                         {r.replies && r.replies.length > 0 && (
                                             <div className="mt-3 ms-4 border-start ps-3">
                                                 {r.replies.map(reply => (
@@ -315,7 +293,6 @@ const DishDetail = () => {
                     </ListGroup>
                 </Col>
 
-                {/* Form thêm đánh giá */}
                 <Col md={5}>
                     <h3 className="mb-3">Để lại đánh giá của bạn</h3>
                     {user ? (

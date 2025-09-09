@@ -9,8 +9,8 @@ const ManagerHeader = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();        // xóa token và reset user
-    navigate("/");   // chuyển hướng về trang Home
+    logout();        
+    navigate("/");  
   };
 
   return (
@@ -18,7 +18,7 @@ const ManagerHeader = () => {
       <Container>
         <LinkContainer to="/manager">
           <Navbar.Brand className="fw-bold fs-4">
-            🏨 Quản lý Nhà Hàng
+            Quản lý Nhà Hàng
           </Navbar.Brand>
         </LinkContainer>
 

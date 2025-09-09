@@ -38,18 +38,18 @@ const cartReducer = (state, action) => {
 export const CartProvider = ({ children }) => {
     const { user } = useContext(UserContext);
 
-    // Key localStorage theo user
+
     const localStorageKey = user ? `cart_${user.id}` : 'cart_guest';
 
     const initialState = JSON.parse(localStorage.getItem(localStorageKey)) || [];
     const [cart, dispatch] = React.useReducer(cartReducer, initialState);
 
-    // Lưu giỏ hàng mỗi khi thay đổi
+
     useEffect(() => {
         localStorage.setItem(localStorageKey, JSON.stringify(cart));
     }, [cart, localStorageKey]);
 
-    // Khi user logout, xóa giỏ hàng
+
     useEffect(() => {
         if (!user) {
             dispatch({ type: 'CLEAR_CART' });

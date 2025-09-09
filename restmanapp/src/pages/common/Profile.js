@@ -5,24 +5,19 @@ import { authApi, endpoints } from '../../configs/Apis';
 import { Navigate } from 'react-router-dom';
 
 const Profile = () => {
-    // Lấy user và hàm login (để cập nhật lại context) từ UserContext
     const { user, login } = useContext(UserContext);
     
-    // State để lưu dữ liệu form, thêm email
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
         email: ''
     });
-    // State riêng cho file avatar và preview
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState('');
 
-    // State cho trạng thái loading và message
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', content: '' });
 
-    // Tự động điền thông tin người dùng vào form khi component được tải
     useEffect(() => {
         if (user) {
             setFormData({
@@ -34,21 +29,18 @@ const Profile = () => {
         }
     }, [user]);
 
-    // Xử lý thay đổi input text
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Xử lý thay đổi file ảnh
     const handleAvatarChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             setAvatarFile(file);
-            setAvatarPreview(URL.createObjectURL(file)); // Tạo preview tạm thời
+            setAvatarPreview(URL.createObjectURL(file)); 
         }
     };
 
-    // Xử lý khi submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -58,19 +50,17 @@ const Profile = () => {
             const data = new FormData();
             data.append('first_name', formData.first_name);
             data.append('last_name', formData.last_name);
-            data.append('email', formData.email); // Thêm email vào dữ liệu gửi đi
+            data.append('email', formData.email); 
             if (avatarFile) {
                 data.append('avatar', avatarFile);
             }
 
-            // Gọi API để cập nhật
             const res = await authApi().patch(endpoints['current-user'], data, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
 
-            // Cập nhật lại thông tin user trong Context và cookie
             login(res.data);
 
             setMessage({ type: 'success', content: 'Cập nhật thông tin thành công!' });
@@ -83,7 +73,6 @@ const Profile = () => {
         }
     };
 
-    // Nếu người dùng chưa đăng nhập, chuyển hướng về trang chủ
     if (!user) {
         return <Navigate to="/" />;
     }

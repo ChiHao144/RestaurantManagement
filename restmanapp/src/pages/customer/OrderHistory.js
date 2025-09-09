@@ -12,7 +12,7 @@ const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [payingOrderId, setPayingOrderId] = useState(null); // [MỚI] State để biết đang thanh toán cho đơn nào
+    const [payingOrderId, setPayingOrderId] = useState(null); 
 
     useEffect(() => {
         const loadOrders = async () => {
@@ -35,14 +35,12 @@ const OrderHistory = () => {
         loadOrders();
     }, [user]);
 
-    // [MỚI] Hàm xử lý khi nhấn nút thanh toán MoMo
     const handlePayment = async (orderId, paymentType) => {
         try {
             let endpoint;
             if (paymentType === 'MOMO') {
                 endpoint = endpoints['initiate-payment'](orderId);
             }
-            // [CẬP NHẬT] Thêm logic cho VNPay
             else if (paymentType === 'VNPAY') {
                 endpoint = endpoints['initiate-vnpay-payment'](orderId);
             }
@@ -123,13 +121,11 @@ const OrderHistory = () => {
                                     </Card.Body>
                                     <Card.Footer className="text-end">
                                         <span className="fs-5 me-3"><strong>Tổng cộng:</strong> <span className="text-danger">{parseInt(order.total_amount).toLocaleString('vi-VN')} VNĐ</span></span>
-                                        {/* [MỚI] Nút thanh toán chỉ hiện khi đơn chưa thanh toán */}
                                         {order.status === 'PENDING' && (
                                             <>
                                                 <Button variant="danger" className="me-2" onClick={() => handlePayment(order.id, 'MOMO')}>
                                                     Thanh toán MoMo
                                                 </Button>
-                                                {/* [CẬP NHẬT] Thêm nút thanh toán VNPay */}
                                                 <Button variant="primary" onClick={() => handlePayment(order.id, 'VNPAY')}>
                                                     Thanh toán VNPay
                                                 </Button>

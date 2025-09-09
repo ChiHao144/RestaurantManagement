@@ -6,9 +6,7 @@ import moment from 'moment';
 const PrintableInvoice = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { orderData } = location.state || {}; // Lấy dữ liệu từ location.state
-
-    // Tự động mở hộp thoại in khi component được tải
+    const { orderData } = location.state || {}; 
     useEffect(() => {
         if (orderData) {
             window.print();

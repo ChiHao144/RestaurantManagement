@@ -33,9 +33,7 @@ const OrderDetail = () => {
         loadOrderDetail();
     }, [orderId, user]);
 
-    // Hàm xử lý khi nhấn nút in
     const handlePrint = () => {
-        // Chuyển dữ liệu hóa đơn qua trang in bằng location.state
         navigate('/manager/print-invoice', { state: { orderData: order } });
     };
 
@@ -100,7 +98,7 @@ const OrderDetail = () => {
 
             <div className="text-center mt-4">
                 <Button variant="success" size="lg" onClick={handlePrint}>
-                    🖨️ In Hóa Đơn
+                    In Hóa Đơn
                 </Button>
             </div>
         </Container>

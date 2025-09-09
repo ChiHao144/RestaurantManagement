@@ -74,10 +74,6 @@ const App = () => {
                 <Route path="statistics" element={<Statistics />} />
               </Route>
 
-              {/* ---- Layout cho waiter ---- */}
-              {/* <Route path="/waiter" element={<ManagerLayout />}>
-              <Route path="table-management" element={<TableStatusDashboard />} />
-            </Route> */}
 
               {/* 404 fallback */}
               <Route path="*" element={<h1>404 - Không tìm thấy trang</h1>} />

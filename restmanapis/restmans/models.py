@@ -5,18 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from cloudinary.models import CloudinaryField
 
 
-# --- AUTHENTICATION MODEL ---
 class User(AbstractUser):
-    """
-    Model người dùng tùy chỉnh, kế thừa từ AbstractUser của Django.
-    Bạn có thể thêm các trường tùy chỉnh cho người dùng ở đây nếu cần.
-    Ví dụ: avatar = models.ImageField(...)
-    """
-
-    """
-        Cập nhật User model với các vai trò cụ thể.
-        """
-
     class Role(models.TextChoices):
         ADMIN = 'ADMIN', 'Quản trị viên'
         MANAGER = 'MANAGER', 'Quản lý'
@@ -27,12 +16,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.CUSTOMER, verbose_name="Vai trò")
 
 
-# --- BASE MODEL ---
 class BaseModel(models.Model):
-    """
-    Model cơ sở trừu tượng chứa các trường chung.
-    Tất cả các model khác sẽ kế thừa từ model này để tránh lặp code.
-    """
     is_active = models.BooleanField(default=True, verbose_name="Đang hoạt động")
     created_date = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_date = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
@@ -41,9 +25,7 @@ class BaseModel(models.Model):
         abstract = True
 
 
-# --- DISH & CATEGORY MODELS ---
 class Category(BaseModel):
-    """Model Loại Món Ăn"""
     name = models.CharField(max_length=100, unique=True, verbose_name="Tên loại món ăn")
     description = models.TextField(null=True, blank=True, verbose_name="Mô tả")
 
@@ -56,7 +38,6 @@ class Category(BaseModel):
 
 
 class Dish(BaseModel):
-    """Model Món Ăn"""
     name = models.CharField(max_length=255, verbose_name="Tên món ăn")
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)],
                                 verbose_name="Giá tiền")
@@ -74,10 +55,7 @@ class Dish(BaseModel):
         ordering = ['-id']
 
 
-# --- ORDER MODELS ---
 class Order(BaseModel):
-    """Model Hóa Đơn"""
-
     class PaymentMethod(models.TextChoices):
         CASH = 'CASH', 'Tiền mặt'
         VNPAY = 'VNPAY', 'Ví VNPAY'
@@ -88,10 +66,8 @@ class Order(BaseModel):
         COMPLETED = 'COMPLETED', 'Hoàn thành'
         CANCELLED = 'CANCELLED', 'Đã hủy'
 
-    # [THAY ĐỔI] Cho phép user là null đối với khách vãng lai
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', verbose_name="Người dùng",
                              null=True, blank=True)
-    # [MỚI] Thêm liên kết đến bàn ăn cho các đơn hàng tại quán
     table = models.ForeignKey('Table', on_delete=models.SET_NULL, related_name='orders', verbose_name="Bàn ăn",
                               null=True, blank=True)
 
@@ -128,21 +104,17 @@ class OrderDetail(BaseModel):
         return f"{self.quantity} x {self.dish.name} trong Hóa đơn #{self.order.id}"
 
     def save(self, *args, **kwargs):
-        # Tự động lấy giá của món ăn tại thời điểm tạo chi tiết
-        if not self.id:  # Chỉ thực hiện khi tạo mới
+        if not self.id:
             self.unit_price = self.dish.price
         super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Chi Tiết Hóa Đơn"
         verbose_name_plural = "Các Chi Tiết Hóa Đơn"
-        # Đảm bảo mỗi món ăn chỉ xuất hiện 1 lần trong 1 hóa đơn
         unique_together = ('order', 'dish')
 
 
-# --- REVIEW MODEL ---
 class Review(BaseModel):
-    """Model Đánh Giá"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews', verbose_name="Người dùng")
     dish = models.ForeignKey(Dish, on_delete=models.CASCADE, related_name='reviews', verbose_name="Món ăn")
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)],
@@ -155,11 +127,9 @@ class Review(BaseModel):
     class Meta:
         verbose_name = "Đánh Giá"
         verbose_name_plural = "Các Đánh Giá"
-        # Đảm bảo mỗi người dùng chỉ đánh giá 1 lần cho 1 món ăn
         unique_together = ('user', 'dish')
 
 class ReviewReply(BaseModel):
-    """Model Phản hồi Đánh giá"""
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='replies', verbose_name="Đánh giá gốc")
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Nhân viên phản hồi")
     content = models.TextField(verbose_name="Nội dung phản hồi")
@@ -173,7 +143,6 @@ class ReviewReply(BaseModel):
         ordering = ['created_date']
 
 
-# --- BOOKING & TABLE MODELS (UPDATED) ---
 class Table(BaseModel):
     class TableStatus(models.TextChoices):
         AVAILABLE = 'AVAILABLE', 'Trống'
@@ -194,8 +163,6 @@ class Table(BaseModel):
 
 
 class Booking(BaseModel):
-    """Model Đơn Đặt Bàn (Tổng quan)"""
-
     class BookingStatus(models.TextChoices):
         CONFIRMED = 'CONFIRMED', 'Đã xác nhận'
         PENDING = 'PENDING', 'Đang chờ'
@@ -219,7 +186,6 @@ class Booking(BaseModel):
 
 
 class BookingDetail(BaseModel):
-    """Model Chi Tiết Đơn Đặt Bàn"""
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='details', verbose_name="Đơn đặt bàn")
     table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='booking_details', verbose_name="Bàn ăn")
     start_time = models.DateTimeField(verbose_name="Thời gian bắt đầu")
