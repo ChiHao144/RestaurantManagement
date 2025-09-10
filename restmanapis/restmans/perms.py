@@ -23,3 +23,11 @@ class OrPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return any(perm().has_permission(request, view) for perm in self.perms)
+
+class IsWaiterOrManagerUser(permissions.IsAuthenticated):
+    def has_permission(self, request, view):
+        return (
+            super().has_permission(request, view) and
+            request.user.role in [User.Role.WAITER, User.Role.MANAGER]
+        )
+

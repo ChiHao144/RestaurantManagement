@@ -34,6 +34,7 @@ import PaymentFailure from "./pages/customer/PaymentFailure";
 import Statistics from "./pages/manager/Statistics";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import LandingPage from "./pages/customer/LandingPage";
 
 const App = () => {
   return (
@@ -44,7 +45,7 @@ const App = () => {
             <Routes>
               {/* ---- Layout cho khách hàng ---- */}
               <Route path="/" element={<CustomerLayout />}>
-                <Route index element={<Home />} />
+                <Route index element={<LandingPage />} />
                 <Route path="categories/:categoryName" element={<Home />} />
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
@@ -58,6 +59,7 @@ const App = () => {
                 <Route path="profile" element={<Profile />} />
                 <Route path="payment-success" element={<PaymentSuccess />} />
                 <Route path="payment-failure" element={<PaymentFailure />} />
+                <Route path="menu" element={<Home />} />
               </Route>
 
               {/* ---- Layout cho manager ---- */}

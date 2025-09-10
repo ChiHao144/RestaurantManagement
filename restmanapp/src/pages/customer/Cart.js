@@ -84,8 +84,8 @@ const Cart = () => {
         <Alert variant="info">
           <h4>Giỏ hàng của bạn đang trống</h4>
           <p>Hãy khám phá thực đơn và chọn cho mình những món ăn ngon nhất nhé!</p>
-          <Link to="/">
-            <Button variant="dark">Quay lại thực đơn</Button>
+          <Link to="/menu">
+            <Button variant="info">Quay lại thực đơn</Button>
           </Link>
         </Alert>
       </Container>

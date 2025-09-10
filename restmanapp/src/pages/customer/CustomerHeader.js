@@ -48,7 +48,7 @@ const CustomerHeader = () => {
                         </LinkContainer>
 
                         <NavDropdown
-                            title={<span className="text-light">Danh mục</span>}
+                            title={<span className="text-light">Thực đơn</span>}
                             id="category-nav-dropdown"
                             menuVariant="light"
                         >

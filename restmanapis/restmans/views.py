@@ -149,12 +149,12 @@ class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
         available_tables = Table.objects.filter(capacity__gte=guests).exclude(id__in=booked_table_ids)
         return Response(self.get_serializer(available_tables, many=True).data)
 
-    @action(methods=['get'], detail=False, url_path='statuses', permission_classes=[OrPermission(perms.IsManagerUser, perms.IsWaiterUser)])
+    @action(methods=['get'], detail=False, url_path='statuses', permission_classes=[perms.IsWaiterOrManagerUser])
     def statuses(self, request):
         tables = Table.objects.all().order_by('table_number')
         return Response(self.get_serializer(tables, many=True).data)
 
-    @action(methods=['patch'], detail=True, url_path='update-status', permission_classes=[OrPermission(perms.IsManagerUser, perms.IsWaiterUser)])
+    @action(methods=['patch'], detail=True, url_path='update-status', permission_classes=[perms.IsWaiterOrManagerUser])
     def update_status(self, request, pk=None):
         try:
             table = self.get_object()

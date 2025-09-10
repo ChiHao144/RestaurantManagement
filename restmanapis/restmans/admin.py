@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from django.contrib import admin
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncMonth
@@ -10,6 +9,8 @@ from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 import json
 from .models import Category, Dish, Order, OrderDetail, Review, Table, Booking, User, BookingDetail, ReviewReply
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.utils.html import format_html
 
 
 class DishForm(forms.ModelForm):
@@ -83,6 +84,20 @@ class ReviewAdmin(admin.ModelAdmin):
     list_filter = ['rating', 'created_date']
     inlines = [ReviewReplyInline]
 
+class ReviewReplyAdmin(admin.ModelAdmin):
+    list_display = ["id", "review_link", "user", "short_content", "created_date"]
+    search_fields = ["content", "user__username", "review__id"]
+    list_filter = ["created_date", "user"]
+    ordering = ["-created_date"]
+
+    def short_content(self, obj):
+        return obj.content[:50] + ("..." if len(obj.content) > 50 else "")
+    short_content.short_description = "Nội dung phản hồi"
+
+    def review_link(self, obj):
+        return f"Đánh giá #{obj.review.id}"
+    review_link.short_description = "Đánh giá gốc"
+
 class BookingAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'get_booked_tables', 'booking_time', 'number_of_guests', 'status']
     search_fields = ['user__username', 'id']
@@ -143,36 +158,72 @@ class RestaurantAdminSite(admin.AdminSite):
         }
         return TemplateResponse(request, 'admin/statistics.html', context)
 
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.utils.html import format_html
+class TableAdmin(admin.ModelAdmin):
+    list_display = ["id", "table_number", "capacity", "status_badge"]
+    search_fields = ["table_number"]
+    list_filter = ["status", "capacity"]
+    ordering = ["table_number"]
 
-class UserAdmin(admin.ModelAdmin):
-    list_display = ["id", "avatar_thumb", "username", "email", "full_name", "is_active", "is_staff"]
+    # Hiển thị status dưới dạng badge màu
+    def status_badge(self, obj):
+        colors = {
+            obj.TableStatus.AVAILABLE: "green",
+            obj.TableStatus.OCCUPIED: "orange",
+            obj.TableStatus.CLEANING: "red",
+        }
+        color = colors.get(obj.status, "gray")
+        return format_html(
+            '<span style="padding:3px 8px;border-radius:4px;background-color:{};color:white;font-size:12px;">{}</span>',
+            color,
+            obj.get_status_display(),
+        )
+    status_badge.short_description = "Trạng thái"
+
+class UserAdmin(BaseUserAdmin):
+    list_display = ["id", "avatar_thumb", "username", "email", "full_name", "is_active", "is_staff", "role_badge"]
     search_fields = ["username", "email", "first_name", "last_name"]
-    list_filter = ["is_active", "is_staff", "is_superuser"]
+    list_filter = ["is_active", "is_staff", "is_superuser", "role"]
     ordering = ["-date_joined"]
 
     fieldsets = BaseUserAdmin.fieldsets + (
         ("Thông tin bổ sung", {
-            "fields": ("avatar",),
+            "fields": ("avatar", "role"),
         }),
     )
 
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ("Thông tin bổ sung", {
-            "fields": ("avatar",),
+            "fields": ("avatar", "role"),
         }),
     )
 
     def avatar_thumb(self, obj):
         if obj.avatar:
-            return format_html("<img src='{}' width='40' height='40' style='border-radius:50%;object-fit:cover'/>", obj.avatar.url)
+            return format_html(
+                "<img src='{}' width='40' height='40' style='border-radius:50%;object-fit:cover'/>",
+                obj.avatar.url
+            )
         return "—"
     avatar_thumb.short_description = "Ảnh"
 
     def full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip() or "—"
     full_name.short_description = "Họ và Tên"
+
+    def role_badge(self, obj):
+        colors = {
+            obj.Role.ADMIN: "red",
+            obj.Role.MANAGER: "blue",
+            obj.Role.WAITER: "green",
+            obj.Role.CUSTOMER: "gray",
+        }
+        color = colors.get(obj.role, "black")
+        return format_html(
+            '<span style="padding:3px 8px;border-radius:4px;background-color:{};color:white;font-size:12px;">{}</span>',
+            color,
+            obj.get_role_display(),
+        )
+    role_badge.short_description = "Vai trò"
 
 
 admin_site = RestaurantAdminSite(name='RestaurantAdmin')
@@ -181,7 +232,7 @@ admin_site.register(Category, CategoryAdmin)
 admin_site.register(Dish, DishAdmin)
 admin_site.register(Order, OrderAdmin)
 admin_site.register(Review, ReviewAdmin)
-admin_site.register(ReviewReply)
-admin_site.register(Table)
+admin_site.register(ReviewReply, ReviewReplyAdmin)
+admin_site.register(Table, TableAdmin)
 admin_site.register(Booking, BookingAdmin)
 admin_site.register(User, UserAdmin)

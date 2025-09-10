@@ -31,7 +31,7 @@ const styles = {
     flexGrow: 1,
     overflowY: "auto",
     padding: "12px",
-    background: "linear-gradient(180deg, #ffffff 0%, #f9f9f9 100%)",
+    background: "linear-gradient(180deg, #ffffff 0%, #fff8dc 100%)", // nền trắng vàng nhạt
   },
   message: {
     marginBottom: "10px",
@@ -42,14 +42,14 @@ const styles = {
     boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
   },
   userMessage: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#8B0000", // đỏ sẫm
     color: "white",
     alignSelf: "flex-end",
     marginLeft: "auto",
     borderBottomRightRadius: "5px",
   },
   aiMessage: {
-    backgroundColor: "#f1f1f1",
+    backgroundColor: "#FFF3B0", // vàng nhạt
     color: "#333",
     alignSelf: "flex-start",
     borderBottomLeftRadius: "5px",
@@ -92,7 +92,7 @@ const ChatbotWidget = () => {
       console.error("Lỗi khi gọi chatbot:", err);
       const errorMessage = {
         sender: "ai",
-        text: "❌ Xin lỗi, tôi đang gặp sự cố nhỏ. Vui lòng thử lại sau.",
+        text: "Xin lỗi, tôi đang gặp sự cố nhỏ. Vui lòng thử lại sau.",
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -107,7 +107,7 @@ const ChatbotWidget = () => {
           <Card.Header
             className="d-flex justify-content-between align-items-center text-white"
             style={{
-              background: "linear-gradient(135deg, #28a745, #218838)",
+              background: "linear-gradient(135deg, #FFD700, #8B0000)",
               fontWeight: "bold",
               fontSize: "1rem",
             }}
@@ -119,7 +119,7 @@ const ChatbotWidget = () => {
               onClick={() => setIsOpen(false)}
               style={{ borderRadius: "50%", padding: "4px 6px" }}
             >
-              <X size={20} />
+              <X size={20} color="#8B0000" />
             </Button>
           </Card.Header>
 
@@ -157,17 +157,18 @@ const ChatbotWidget = () => {
                 />
                 <Button
                   type="submit"
-                  variant="success"
-                  disabled={isLoading}
                   style={{
+                    backgroundColor: "#FFD700",
+                    borderColor: "#FFD700",
                     borderRadius: "0 20px 20px 0",
                     padding: "0 16px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
+                  disabled={isLoading}
                 >
-                  <Send size={18} />
+                  <Send size={18} color="#8B0000" />
                 </Button>
               </InputGroup>
             </Form>
@@ -175,20 +176,33 @@ const ChatbotWidget = () => {
         </Card>
       ) : (
         <Button
-          variant="success"
           size="lg"
-          className="rounded-circle shadow-lg"
+          className="shadow-lg"
           style={{
+            background: "linear-gradient(135deg, #FFD700, #8B0000)",
+            border: "none",
             width: "65px",
             height: "65px",
+            borderRadius: "50%", 
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            transition: "transform 0.2s ease, box-shadow 0.2s ease",
           }}
           onClick={() => setIsOpen(true)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+            e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.4)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+          }}
         >
-          <ChatDots size={28} />
+          <ChatDots size={28} color="white" />
         </Button>
+
       )}
     </div>
   );
