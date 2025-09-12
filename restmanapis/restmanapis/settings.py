@@ -73,15 +73,15 @@ MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create"
 MOMO_PARTNER_CODE = "MOMO"
 MOMO_ACCESS_KEY = config("MOMO_ACCESS_KEY")
 MOMO_SECRET_KEY = config("MOMO_SECRET_KEY")
-MOMO_IPN_URL = "https://006a26554c86.ngrok-free.app/momo/"
-MOMO_REDIRECT_URL = "https://006a26554c86.ngrok-free.app/momo/return"
+MOMO_IPN_URL = "https://cbb46ff757e1.ngrok-free.app/momo/"
+MOMO_REDIRECT_URL = "https://cbb46ff757e1.ngrok-free.app/momo/return"
 
 # === CẤU HÌNH VNPAY ===
 VNPAY_ENDPOINT = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
 VNPAY_TMNCODE = config("VNPAY_TMNCODE")
 VNPAY_HASH_SECRET_KEY = config("VNPAY_HASH_SECRET_KEY")
-VNPAY_RETURN_URL = "https://006a26554c86.ngrok-free.app/vnpay/return/"
-VNPAY_IPN_URL = "https://006a26554c86.ngrok-free.app/vnpay/"
+VNPAY_RETURN_URL = "https://cbb46ff757e1.ngrok-free.app/vnpay/return/"
+VNPAY_IPN_URL = "https://cbb46ff757e1.ngrok-free.app/vnpay/"
 
 CORS_ALLOW_ALL_ORIGINS = True
 

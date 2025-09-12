@@ -25,8 +25,8 @@ const PrintableInvoice = () => {
     return (
         <Container className="my-4 invoice-container">
             <div className="text-center mb-4">
-                <h2>NHÀ HÀNG ABC</h2>
-                <p>123 Đường XYZ, Quận 1, TP. Hồ Chí Minh</p>
+                <h2>Nhà hàng SpicyTown</h2>
+                <p>Phường Sài Gòn, TP. Hồ Chí Minh</p>
                 <p>Hotline: 0123 456 789</p>
                 <hr />
                 <h3 className="my-3">HÓA ĐƠN THANH TOÁN</h3>

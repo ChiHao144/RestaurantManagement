@@ -27,7 +27,7 @@ from rest_framework.response import Response
 
 from .models import Category, Dish, User, Review, Table, Booking, Order, OrderDetail, BookingDetail, ReviewReply
 from . import serializers, paginators, perms
-from .perms import OrPermission
+from .perms import OrPermission, IsManagerAdminWaiterOrOwner
 from .vnpay_utils import Vnpay
 
 
@@ -173,16 +173,11 @@ class TableViewSet(viewsets.ViewSet, generics.ListAPIView):
 class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
     queryset = Booking.objects.all()
     serializer_class = serializers.BookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsManagerAdminWaiterOrOwner]
 
     def get_queryset(self):
         user = self.request.user
-        allowed_roles = [
-            User.Role.MANAGER,
-            User.Role.ADMIN,
-            User.Role.WAITER,
-        ]
-        if user.role in allowed_roles:
+        if user.role in [User.Role.MANAGER, User.Role.ADMIN, User.Role.WAITER]:
             return self.queryset
         return self.queryset.filter(user=user)
 
@@ -459,6 +454,31 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
         except Exception as e:
             logging.error(f"Lỗi khi tạo thanh toán VNPay: {e}")
             return Response({'error': 'Đã có lỗi xảy ra phía server.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(methods=['patch'], detail=True, url_path='cancel', permission_classes=[permissions.IsAuthenticated])
+    def cancel_order(self, request, pk=None):
+        try:
+            order = self.get_object()
+
+
+            if order.user != request.user:
+                return Response({'error': 'Bạn không có quyền thực hiện hành động này.'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+
+            if order.status == 'PENDING':
+                order.status = 'CANCELLED'
+                order.save()
+                return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {'error': f'Không thể hủy đơn hàng đang ở trạng thái "{order.status}".'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except Order.DoesNotExist:
+            return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+
+
 
 
 class VNPayIPNViewSet(viewsets.ViewSet):

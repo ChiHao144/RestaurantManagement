@@ -4,6 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 import moment from 'moment';
 import { UserContext } from '../../configs/UserContext';
 import { authApi, endpoints } from '../../configs/Apis';
+import { Bank, Trash, Wallet } from 'react-bootstrap-icons';
 
 moment.locale('vi');
 
@@ -12,7 +13,6 @@ const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [payingOrderId, setPayingOrderId] = useState(null); 
 
     useEffect(() => {
         const loadOrders = async () => {
@@ -35,6 +35,22 @@ const OrderHistory = () => {
         loadOrders();
     }, [user]);
 
+
+    const handleCancelOrder = async (orderId) => {
+        if (window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không? Thao tác này không thể hoàn tác.")) {
+            try {
+                const res = await authApi().patch(endpoints['cancel-order'](orderId));
+                setOrders(currentOrders =>
+                    currentOrders.map(o => (o.id === orderId ? res.data : o))
+                );
+                alert("Hủy đơn hàng thành công!");
+            } catch (err) {
+                console.error(`Lỗi khi hủy đơn #${orderId}:`, err);
+                const errorMessage = err.response?.data?.error || "Đã xảy ra lỗi. Vui lòng thử lại.";
+                alert(errorMessage);
+            }
+        }
+    };
     const handlePayment = async (orderId, paymentType) => {
         try {
             let endpoint;
@@ -123,10 +139,29 @@ const OrderHistory = () => {
                                         <span className="fs-5 me-3"><strong>Tổng cộng:</strong> <span className="text-danger">{parseInt(order.total_amount).toLocaleString('vi-VN')} VNĐ</span></span>
                                         {order.status === 'PENDING' && (
                                             <>
-                                                <Button variant="danger" className="me-2" onClick={() => handlePayment(order.id, 'MOMO')}>
+                                                <Button
+                                                    variant="danger"
+                                                    className="me-2"
+                                                    onClick={() => handleCancelOrder(order.id)}
+                                                >
+                                                    <Trash className="me-1" />
+                                                    Hủy đơn hàng
+                                                </Button>
+
+                                                <Button
+                                                    variant="success"
+                                                    className="me-2"
+                                                    onClick={() => handlePayment(order.id, 'MOMO')}
+                                                >
+                                                    <Wallet className="me-1" />
                                                     Thanh toán MoMo
                                                 </Button>
-                                                <Button variant="primary" onClick={() => handlePayment(order.id, 'VNPAY')}>
+
+                                                <Button
+                                                    variant="info"
+                                                    onClick={() => handlePayment(order.id, 'VNPAY')}
+                                                >
+                                                    <Bank className="me-1" />
                                                     Thanh toán VNPay
                                                 </Button>
                                             </>
@@ -141,5 +176,6 @@ const OrderHistory = () => {
         </Container>
     );
 };
+
 
 export default OrderHistory;
