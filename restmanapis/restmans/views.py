@@ -288,6 +288,7 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
 class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
     queryset = Order.objects.all()
     serializer_class = serializers.OrderSerializer
+    permission_classes = IsManagerAdminWaiterOrOwner
 
     def get_permissions(self):
         if self.action in ['place_order_at_table', 'initiate_payment']:
@@ -301,7 +302,7 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
         user = self.request.user
         if not user.is_authenticated:
             return Order.objects.none()
-        if user.role in [User.Role.MANAGER]:
+        if user.role in [User.Role.MANAGER, User.Role.WAITER]:
             return self.queryset
         return self.queryset.filter(user=user)
 

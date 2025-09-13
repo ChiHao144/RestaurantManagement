@@ -33,11 +33,6 @@ class IsWaiterOrManagerUser(permissions.IsAuthenticated):
 
 
 class IsManagerAdminWaiterOrOwner(permissions.IsAuthenticated):
-    """
-    Cho phép MANAGER, ADMIN, WAITER thấy tất cả.
-    Người dùng thường chỉ thấy dữ liệu của chính họ.
-    AnonymousUser bị chặn.
-    """
 
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated

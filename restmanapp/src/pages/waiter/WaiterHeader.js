@@ -4,7 +4,7 @@ import { LinkContainer } from "react-router-bootstrap";
 import { UserContext } from "../../configs/UserContext";
 import { useNavigate } from "react-router-dom";
 
-const ManagerHeader = () => {
+const WaiterHeader = () => {
   const { user, logout } = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -16,32 +16,20 @@ const ManagerHeader = () => {
   return (
     <Navbar expand="lg" bg="primary" variant="dark" sticky="top" className="shadow-sm">
       <Container>
-        <LinkContainer to="/manager">
+        <LinkContainer to="/waiter">
           <Navbar.Brand className="fw-bold fs-4">
             Quản lý Nhà Hàng
           </Navbar.Brand>
         </LinkContainer>
 
-        <Navbar.Toggle aria-controls="manager-navbar-nav" />
-        <Navbar.Collapse id="manager-navbar-nav">
+        <Navbar.Toggle aria-controls="waiter-navbar-nav" />
+        <Navbar.Collapse id="waiter-navbar-nav">
           <Nav className="me-auto">
-            <LinkContainer to="/manager">
-              <Nav.Link>Danh sách đơn đặt bàn</Nav.Link>
-            </LinkContainer>
-            <LinkContainer to="/manager/all-bookings">
-              <Nav.Link>Tất cả đơn đặt bàn</Nav.Link>
-            </LinkContainer>
-            <LinkContainer to="/manager/table-management">
+            <LinkContainer to="/waiter/table-management">
               <Nav.Link>Quản lý bàn ăn</Nav.Link>
             </LinkContainer>
-            <LinkContainer to="/manager/orders">
+            <LinkContainer to="/waiter/orders">
               <Nav.Link>Quản lý hóa đơn</Nav.Link>
-            </LinkContainer>
-            <LinkContainer to="/manager/allreviews">
-              <Nav.Link>Quản lý đánh giá</Nav.Link>
-            </LinkContainer>
-            <LinkContainer to="/manager/statistics">
-              <Nav.Link>Thống kê</Nav.Link>
             </LinkContainer>
           </Nav>
 
@@ -62,9 +50,9 @@ const ManagerHeader = () => {
                     {user.first_name}
                   </>
                 }
-                id="manager-user-dropdown"
+                id="waiter-user-dropdown"
               >
-                <LinkContainer to="/manager/profile">
+                <LinkContainer to="/waiter/profile">
                   <NavDropdown.Item>Thông tin cá nhân</NavDropdown.Item>
                 </LinkContainer>
                 <NavDropdown.Divider />
@@ -78,4 +66,4 @@ const ManagerHeader = () => {
   );
 };
 
-export default ManagerHeader;
+export default WaiterHeader;

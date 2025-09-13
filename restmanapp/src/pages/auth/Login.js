@@ -39,9 +39,13 @@ const Login = () => {
     };
 
     if (user) {
-        if (["WAITER", "MANAGER", "ADMIN"].includes(user.role)) {
+        if (["MANAGER"].includes(user.role)) {
             return <Navigate to="/manager" />;
         }
+        else
+            if (["WAITER"].includes(user.role)) {
+                return <Navigate to="/waiter" />;
+            }
         return <Navigate to="/" />;
     }
 

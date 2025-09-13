@@ -35,6 +35,7 @@ import Statistics from "./pages/manager/Statistics";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import LandingPage from "./pages/customer/LandingPage";
+import WaiterLayout from "./components/layout/WaiterLayout";
 
 const App = () => {
   return (
@@ -74,6 +75,16 @@ const App = () => {
                 <Route path="profile" element={<Profile />} />
                 <Route path="allreviews" element={<ReviewManagement />} />
                 <Route path="statistics" element={<Statistics />} />
+              </Route>
+
+              {/* ---- Layout cho waiter ---- */}
+              <Route path="/waiter" element={<WaiterLayout />}>
+                <Route index element={<TableStatusDashboard />} />
+                <Route path="table-management" element={<TableStatusDashboard />} />
+                <Route path="orders" element={<OrderManagement />} />
+                <Route path="orderdetails/:orderId" element={<OrderDetail />} />
+                <Route path="print-invoice" element={<PrintableInvoice />} />
+                <Route path="profile" element={<Profile />} />
               </Route>
 
 

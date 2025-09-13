@@ -14,7 +14,7 @@ const ManagerDashboard = () => {
 
     useEffect(() => {
         const loadPendingBookings = async () => {
-            if (user && (user.role === 'STAFF' || user.role === 'MANAGER' || user.role === 'ADMIN')) {
+            if (user && (user.role === 'WAITER' || user.role === 'MANAGER' || user.role === 'ADMIN')) {
                 try {
                     setLoading(true);
                     setError(null);
