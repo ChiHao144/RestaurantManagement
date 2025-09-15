@@ -31,7 +31,7 @@ const styles = {
     flexGrow: 1,
     overflowY: "auto",
     padding: "12px",
-    background: "linear-gradient(180deg, #ffffff 0%, #fff8dc 100%)", // nền trắng vàng nhạt
+    background: "linear-gradient(180deg, #ffffff 0%, #fff8dc 100%)", 
   },
   message: {
     marginBottom: "10px",
@@ -42,14 +42,14 @@ const styles = {
     boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
   },
   userMessage: {
-    backgroundColor: "#8B0000", // đỏ sẫm
+    backgroundColor: "#8B0000", 
     color: "white",
     alignSelf: "flex-end",
     marginLeft: "auto",
     borderBottomRightRadius: "5px",
   },
   aiMessage: {
-    backgroundColor: "#FFF3B0", // vàng nhạt
+    backgroundColor: "#FFF3B0", 
     color: "#333",
     alignSelf: "flex-start",
     borderBottomLeftRadius: "5px",

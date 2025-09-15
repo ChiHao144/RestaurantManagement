@@ -15,6 +15,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Q, Count, Sum
+from django.db.models.aggregates import Avg
 from django.db.models.functions import TruncMonth, TruncDay
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
@@ -405,7 +406,7 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
 
             serializer = self.get_serializer(order, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save()  # Lưu các thay đổi vào database
+            serializer.save()
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -445,6 +446,7 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
 
             print("CHECK IPN URL:", settings.VNPAY_IPN_URL)
             print("CHECK RETURN URL:", settings.VNPAY_RETURN_URL)
+            print(f"IPN: Đang tìm kiếm hóa đơn với ID = {order.id}")
 
             payment_url = vnp.get_payment_url()
 
@@ -478,8 +480,6 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
                 )
         except Order.DoesNotExist:
             return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
-
-
 
 
 class VNPayIPNViewSet(viewsets.ViewSet):
@@ -626,24 +626,52 @@ class ChatbotViewSet(viewsets.ViewSet):
     @action(methods=['post'], detail=False, url_path='ask')
     def ask(self, request):
         user_message = request.data.get('message')
+        chat_history = request.data.get('history', [])
+
         if not user_message:
             return Response({'error': 'Vui lòng nhập câu hỏi của bạn.'}, status=400)
 
         try:
             all_dishes = Dish.objects.filter(is_active=True)
             menu_context = "\n".join(
-                [f"- Tên món: {d.name}, Mô tả: {d.description or 'Không có'}, Giá: {d.price} VND" for d in all_dishes]
+                [f"- {d.name}: {d.price} VND" for d in all_dishes]
+            )
+
+            best_sellers = Dish.objects.annotate(
+                order_count=Count('order_details')
+            ).filter(order_count__gt=0).order_by('-order_count')[:5]
+
+            top_rated = Dish.objects.annotate(
+                avg_rating=Avg('reviews__rating')
+            ).filter(avg_rating__gte=4).order_by('-avg_rating')[:5]
+
+            best_seller_context = "\n".join(
+                [f"- {d.name} ({d.order_count} lượt gọi)" for d in best_sellers]
+            )
+            top_rated_context = "\n".join(
+                [f"- {d.name} (Điểm: {d.avg_rating:.1f}/5)" for d in top_rated]
             )
 
             system_prompt = (
-                "Bạn là một nhân viên tư vấn món ăn thân thiện và chuyên nghiệp của nhà hàng SpicyTown. "
-                "Kiến thức duy nhất của bạn là danh sách thực đơn được cung cấp dưới đây. "
-                "Nhiệm vụ của bạn là dựa vào yêu cầu của khách hàng và gợi ý những món ăn phù hợp nhất từ thực đơn. "
-                "Hãy trả lời một cách tự nhiên, ngắn gọn và luôn lịch sự. "
-                "Nếu khách hàng hỏi những vấn đề không liên quan đến thực đơn, hãy nhẹ nhàng từ chối và hướng họ quay lại chủ đề món ăn. "
+                "Bạn là một trợ lý ảo thông minh, thân thiện và chuyên nghiệp của nhà hàng SpicyTown. "
+                "Nhiệm vụ của bạn là trò chuyện với khách hàng, trả lời các câu hỏi và giúp họ có trải nghiệm tốt nhất. "
+                "Sử dụng thông tin được cung cấp dưới đây làm kiến thức nền. Nếu không biết câu trả lời, hãy sử dụng công cụ tìm kiếm. "
                 "Luôn trả lời bằng tiếng Việt."
-                f"\n\n--- THỰC ĐƠN ---\n{menu_context}"
+                f"\n\n--- THÔNG TIN NHÀ HÀNG ---\n"
+                f"Tên: SpicyTown\n"
+                f"Địa chỉ: Phường Sài Gòn, TP. Hồ Chí Minh\n"
+                f"Giờ mở cửa: 07:00 - 23:00 hàng ngày\n\n"
+                f"--- MÓN ĂN BÁN CHẠY NHẤT (BEST-SELLER) ---\n{best_seller_context}\n\n"
+                f"--- MÓN ĂN ĐƯỢC ĐÁNH GIÁ CAO NHẤT ---\n{top_rated_context}\n\n"
+                f"--- THỰC ĐƠN ĐẦY ĐỦ ---\n{menu_context}"
             )
+
+            contents = []
+            for message in chat_history:
+                role = "user" if message.get('sender') == 'user' else "model"
+                contents.append({"role": role, "parts": [{"text": message.get('text', '')}]})
+
+            contents.append({"role": "user", "parts": [{"text": user_message}]})
 
             api_key = getattr(settings, 'GEMINI_API_KEY', None)
             if not api_key:
@@ -653,7 +681,8 @@ class ChatbotViewSet(viewsets.ViewSet):
 
             payload = {
                 "systemInstruction": {"parts": [{"text": system_prompt}]},
-                "contents": [{"parts": [{"text": user_message}]}],
+                "contents": contents,
+                "tools": [{"google_search": {}}]
             }
 
             response = requests.post(api_url, json=payload, headers={'Content-Type': 'application/json'})

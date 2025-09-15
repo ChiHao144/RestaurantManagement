@@ -2,7 +2,8 @@ import { Outlet } from "react-router-dom";
 import { Container } from "react-bootstrap";
 import CustomerHeader from "../../pages/customer/CustomerHeader";
 import Footer from "./common/Footer";
-import ChatbotWidget from "../../pages/customer/ChatBox";
+import ChatbotWidget from "../../pages/customer/ChatBot";
+
 
 const CustomerLayout = () => {
   return (
