@@ -107,7 +107,7 @@ class BookingAdmin(admin.ModelAdmin):
     def get_booked_tables(self, booking_obj):
         tables = ", ".join([detail.table.table_number for detail in booking_obj.details.all()])
         return tables if tables else "Chưa có bàn"
-    get_booked_tables.short_description = "Các bàn đã đặt" # Tên cột trong admin
+    get_booked_tables.short_description = "Các bàn đã đặt"
 
 class RestaurantAdminSite(admin.AdminSite):
     site_header = 'Hệ Thống Quản Lý Nhà Hàng'
@@ -143,7 +143,7 @@ class RestaurantAdminSite(admin.AdminSite):
 
         dish_popularity = Dish.objects.annotate(
             order_count=Count('order_details')
-        ).filter(order_count__gt=0).values('name', 'order_count').order_by('-order_count')[:10]  # Lấy top 10
+        ).filter(order_count__gt=0).values('name', 'order_count').order_by('-order_count')[:10]
 
         context = {
             'title': f'Thống kê Kinh doanh - {month}/{year}',

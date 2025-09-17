@@ -35,23 +35,61 @@ const ResetPassword = () => {
     };
 
     return (
-        <Container className="my-5" style={{ maxWidth: '500px' }}>
-            <h1 className="text-center text-success mb-4">ĐẶT LẠI MẬT KHẨU MỚI</h1>
+        <Container 
+            className="my-5 p-4 rounded shadow" 
+            style={{ maxWidth: '550px', backgroundColor: '#fffbea' }}
+        >
+            <h1 className="text-center mb-4" style={{ color: '#8B0000' }}>
+                ĐẶT LẠI MẬT KHẨU MỚI
+            </h1>
             
-            {message.content && <Alert variant={message.type}>{message.content}</Alert>}
+            {message.content && (
+                <Alert 
+                    style={{ 
+                        backgroundColor: message.type === 'success' ? '#FFD700' : '#8B0000',
+                        color: message.type === 'success' ? '#8B0000' : '#FFD700',
+                        border: 'none',
+                        fontWeight: '500'
+                    }}
+                >
+                    {message.content}
+                </Alert>
+            )}
 
             {!message.content.includes('thành công') && (
                  <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3">
-                        <Form.Label>Mật khẩu mới</Form.Label>
-                        <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                        <Form.Label style={{ color: '#8B0000' }}>Mật khẩu mới</Form.Label>
+                        <Form.Control 
+                            type="password" 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)} 
+                            required 
+                            style={{ borderColor: '#8B0000' }}
+                        />
                     </Form.Group>
                     <Form.Group className="mb-3">
-                        <Form.Label>Xác nhận mật khẩu mới</Form.Label>
-                        <Form.Control type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                        <Form.Label style={{ color: '#8B0000' }}>Xác nhận mật khẩu mới</Form.Label>
+                        <Form.Control 
+                            type="password" 
+                            value={confirmPassword} 
+                            onChange={(e) => setConfirmPassword(e.target.value)} 
+                            required 
+                            style={{ borderColor: '#8B0000' }}
+                        />
                     </Form.Group>
-                    <Button variant="success" type="submit" disabled={loading}>
-                        {loading ? <Spinner size="sm" /> : "Xác nhận"}
+                    <Button 
+                        type="submit" 
+                        className="d-block mx-auto"
+                        disabled={loading}
+                        style={{ 
+                            backgroundColor: '#8B0000', 
+                            borderColor: '#8B0000',
+                            color: '#FFD700',
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        {loading ? <Spinner size="sm" animation="border" style={{ color: '#FFD700' }} /> : "Xác nhận"}
                     </Button>
                 </Form>
             )}
