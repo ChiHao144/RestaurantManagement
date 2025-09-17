@@ -25,7 +25,7 @@ const ManagerHeader = () => {
         <Navbar.Toggle aria-controls="manager-navbar-nav" />
         <Navbar.Collapse id="manager-navbar-nav">
           <Nav className="me-auto">
-            <LinkContainer to="/manager">
+            <LinkContainer to="/manager/pending-bookings">
               <Nav.Link>Danh sách đơn đặt bàn</Nav.Link>
             </LinkContainer>
             <LinkContainer to="/manager/all-bookings">

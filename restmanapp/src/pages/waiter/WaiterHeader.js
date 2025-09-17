@@ -31,6 +31,9 @@ const WaiterHeader = () => {
             <LinkContainer to="/waiter/orders">
               <Nav.Link>Quản lý hóa đơn</Nav.Link>
             </LinkContainer>
+            <LinkContainer to="/waiter/allreviews">
+              <Nav.Link>Phản hồi đánh giá</Nav.Link>
+            </LinkContainer>
           </Nav>
 
           <Nav>
