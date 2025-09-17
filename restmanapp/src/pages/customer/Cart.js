@@ -137,7 +137,6 @@ const Cart = () => {
       </h1>
 
       <Row>
-        {/* Danh sách món ăn */}
         <Col md={8}>
           {cart.map((item, index) => (
             <Card key={item.id} className="mb-3 shadow-sm border-0">

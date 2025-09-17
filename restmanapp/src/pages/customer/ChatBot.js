@@ -67,7 +67,7 @@ const ChatbotWidget = () => {
   const [messages, setMessages] = useState([
     {
       sender: "ai",
-      text: "Xin chào 👋 Tôi là trợ lý ảo của nhà hàng. Tôi có thể giúp bạn chọn món ăn hôm nay!",
+      text: "Xin chào! Tôi là trợ lý ảo của nhà hàng. Tôi có thể giúp bạn chọn món ăn hôm nay!",
     },
   ]);
   const [inputValue, setInputValue] = useState("");

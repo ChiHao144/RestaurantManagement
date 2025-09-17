@@ -125,7 +125,7 @@ const AllBookings = () => {
                             <td>
                                 <div className="d-flex flex-column flex-sm-row gap-2">
                                     {b.status === 'PENDING' && (
-                                        <Button as={Link} to={`/manager/assign-table/${b.id}`} variant="dark" size="sm">
+                                        <Button as={Link} to={`/manager/assign/${b.id}`} variant="dark" size="sm">
                                             Gán bàn
                                         </Button>
                                     )}

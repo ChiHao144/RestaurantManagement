@@ -13,8 +13,8 @@ const DashboardHome = () => {
                         Chào mừng trở lại, {user ? user.first_name : 'Quản trị viên'}!
                     </Card.Title>
                     <Card.Text className="text-muted fs-5">
-                        Đây là <span className="fw-semibold">trang quản trị</span> của nhà hàng 
-                        <span className="text-primary fw-bold"> SpicyTown</span>.  
+                        Đây là <span className="fw-semibold">trang quản trị</span> của nhà hàng
+                        <span className="text-primary fw-bold"> SpicyTown</span>.
                         Hãy sử dụng thanh điều hướng bên trên để bắt đầu công việc của bạn.
                     </Card.Text>
                 </Card.Body>
