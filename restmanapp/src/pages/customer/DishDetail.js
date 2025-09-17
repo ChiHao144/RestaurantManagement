@@ -145,7 +145,26 @@ const DishDetail = () => {
                     <p className="display-4 fw-bold text-danger">
                         {parseInt(dish.price).toLocaleString('vi-VN')} VNĐ
                     </p>
-                    <Button variant="info" size="lg" onClick={() => addToCart(dish)}>
+                    <Button
+                        size="lg"
+                        style={{
+                            backgroundColor: "#FFD700",
+                            color: "#8B0000",
+                            border: "2px solid #8B0000",
+                            fontWeight: "bold",
+                        }}
+                        onMouseOver={(e) => {
+                            e.target.style.backgroundColor = "#8B0000";
+                            e.target.style.color = "#FFD700";
+                            e.target.style.border = "2px solid #FFD700";
+                        }}
+                        onMouseOut={(e) => {
+                            e.target.style.backgroundColor = "#FFD700";
+                            e.target.style.color = "#8B0000";
+                            e.target.style.border = "2px solid #8B0000";
+                        }}
+                        onClick={() => addToCart(dish)}
+                    >
                         Thêm vào giỏ
                     </Button>
                 </Col>
@@ -155,7 +174,11 @@ const DishDetail = () => {
 
             <Row>
                 <Col md={7}>
-                    <h3 className="mb-3">Đánh giá từ khách hàng</h3>
+                    <h3 className="mb-3"
+                        style={{
+                            color: "#8B0000",
+                            fontWeight: "bold",
+                        }}>Đánh giá từ khách hàng</h3>
 
                     <div className="d-flex align-items-center mb-4 p-3 bg-light rounded">
                         <span className="display-4 me-3">{calculateAverageRating()}</span>
@@ -294,7 +317,11 @@ const DishDetail = () => {
                 </Col>
 
                 <Col md={5}>
-                    <h3 className="mb-3">Để lại đánh giá của bạn</h3>
+                    <h3 className="mb-3"
+                        style={{
+                            color: "#8B0000",
+                            fontWeight: "bold",
+                        }}>Để lại đánh giá của bạn</h3>
                     {user ? (
                         <Card className="p-3">
                             <Form onSubmit={handleAddReview}>
@@ -322,7 +349,17 @@ const DishDetail = () => {
                                         required
                                     />
                                 </Form.Group>
-                                <Button type="submit" variant="success" disabled={isSubmitting}>
+                                <Button
+                                    type="submit"
+                                    className="d-block mx-auto"
+                                    disabled={isSubmitting}
+                                    style={{
+                                        backgroundColor: "#FFD700",
+                                        color: "#8B0000",
+                                        border: "2px solid #8B0000",
+                                        fontWeight: "bold",
+                                    }}
+                                >
                                     {isSubmitting ? <Spinner size="sm" /> : "Gửi đánh giá"}
                                 </Button>
                             </Form>
