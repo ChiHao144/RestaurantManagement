@@ -85,7 +85,7 @@ const ReviewManagement = () => {
 
     return (
         <Container className="my-4" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700' }}>Quản Lý Đánh Giá Khách Hàng</h1>
+            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700' }}>QUẢN LÝ ĐÁNH GIÁ VÀ PHẢN HỒI</h1>
             <ListGroup>
                 {reviews.length > 0 ? reviews.map(r => (
                     <ListGroup.Item key={r.id} className="mb-3 shadow-sm" style={{ borderRadius: '10px', border: '1px solid #cfe0fc', transition: 'transform 0.2s', cursor: 'pointer' }}

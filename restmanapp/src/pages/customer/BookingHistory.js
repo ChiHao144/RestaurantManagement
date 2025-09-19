@@ -39,7 +39,7 @@ const BookingHistory = () => {
                 const res = await authApi().patch(endpoints['cancel-booking'](bookingId));
                 setBookings(currentBookings => currentBookings.map(b => {
                     if (b.id === bookingId) {
-                        return res.data; 
+                        return res.data;
                     }
                     return b;
                 }));
@@ -67,7 +67,7 @@ const BookingHistory = () => {
     if (error) {
         return <Container className="my-5"><Alert variant="danger">{error}</Alert></Container>;
     }
-    
+
     const getStatusBadge = (status) => {
         switch (status) {
             case 'PENDING':
@@ -85,11 +85,11 @@ const BookingHistory = () => {
 
     return (
         <Container className="my-5">
-            <h1 className="text-center text-dark mb-4">LỊCH SỬ ĐẶT BÀN</h1>
-            
+            <h1 className="text-center mb-4" style={{ color: '#8B0000', fontWeight: 'bold' }}>LỊCH SỬ ĐẶT BÀN</h1>
+
             {bookings.length === 0 ? (
                 <Alert variant="info">
-                    Bạn chưa có lịch sử đặt bàn nào. 
+                    Bạn chưa có lịch sử đặt bàn nào.
                     <Link to="/booking" className="alert-link ms-2">Đặt bàn ngay!</Link>
                 </Alert>
             ) : (
@@ -100,12 +100,16 @@ const BookingHistory = () => {
 
                         return (
                             <Col md={6} lg={4} key={booking.id} className="mb-4">
-                                <Card className="h-100 shadow-sm">
-                                    <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
+                                <Card className="h-100 shadow-sm border-0" style={{ borderRadius: '10px' }}>
+                                    <Card.Header
+                                        as="h5"
+                                        className="d-flex justify-content-between align-items-center"
+                                        style={{ backgroundColor: '#F9D77E', color: '#8B0000', fontWeight: 'bold' }}
+                                    >
                                         <span>Yêu cầu #{booking.id}</span>
                                         <Badge bg={statusBadge.bg} text={statusBadge.text}>{statusBadge.label}</Badge>
                                     </Card.Header>
-                                    <Card.Body>
+                                    <Card.Body style={{ backgroundColor: '#FFF9F0' }}> {/* nền trắng hơi vàng dịu */}
                                         <Card.Text><strong>Thời gian:</strong> {moment(booking.booking_time).format('HH:mm [ngày] DD/MM/YYYY')}</Card.Text>
                                         <Card.Text><strong>Số lượng khách:</strong> {booking.number_of_guests}</Card.Text>
                                         <Card.Text><strong>Ghi chú của bạn:</strong> {booking.note || 'Không có'}</Card.Text>
@@ -115,9 +119,9 @@ const BookingHistory = () => {
                                                 <p className="fw-bold">Thông tin bàn đã xếp:</p>
                                                 <ListGroup variant="flush">
                                                     {booking.details.map(detail => (
-                                                        <ListGroup.Item key={detail.table.id}>
+                                                        <ListGroup.Item key={detail.table.id} style={{ backgroundColor: '#FFF9F0' }}>
                                                             <strong>{`Bàn ${detail.table.table_number}`}</strong>
-                                                            <br/>
+                                                            <br />
                                                             <small className="text-muted">{detail.note || 'Không có ghi chú từ nhân viên.'}</small>
                                                         </ListGroup.Item>
                                                     ))}
@@ -126,8 +130,12 @@ const BookingHistory = () => {
                                         )}
                                     </Card.Body>
                                     {isCancellable && (
-                                        <Card.Footer className="text-end">
-                                            <Button variant="danger" size="sm" onClick={() => cancelBooking(booking.id)}>
+                                        <Card.Footer className="text-end" style={{ backgroundColor: '#F9D77E' }}>
+                                            <Button
+                                                style={{ backgroundColor: '#8B0000', border: 'none' }}
+                                                size="sm"
+                                                onClick={() => cancelBooking(booking.id)}
+                                            >
                                                 Hủy yêu cầu
                                             </Button>
                                         </Card.Footer>

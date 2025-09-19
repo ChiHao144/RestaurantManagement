@@ -125,7 +125,7 @@ const Statistics = () => {
 
     return (
         <Container fluid className="my-4" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700' }}>Thống kê & Báo cáo</h1>
+            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700' }}>THỐNG KÊ & BÁO CÁO</h1>
 
             <Form.Group className="mb-4" style={{ maxWidth: '200px' }}>
                 <Form.Label className="fw-bold">Chọn năm:</Form.Label>

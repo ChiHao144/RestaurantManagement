@@ -124,7 +124,7 @@ const OrderManagement = () => {
     return (
         <>
             <Container className="my-4" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-                <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700', letterSpacing: '1px' }}>Quản Lý Hóa Đơn</h1>
+                <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700', letterSpacing: '1px' }}>QUẢN LÝ HÓA ĐƠN</h1>
 
                 <div className="d-flex flex-column flex-md-row justify-content-between mb-3 gap-3">
                     <Form.Group style={{ maxWidth: '300px' }}>

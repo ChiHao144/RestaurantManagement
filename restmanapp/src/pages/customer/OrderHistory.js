@@ -104,7 +104,7 @@ const OrderHistory = () => {
 
     return (
         <Container className="my-5">
-            <h1 className="text-center text-dark mb-4">LỊCH SỬ GỌI MÓN</h1>
+            <h1 className="text-center mb-4" style={{ color: '#8B0000', fontWeight: 'bold' }}>LỊCH SỬ GỌI MÓN</h1>
 
             {orders.length === 0 ? (
                 <Alert variant="info">
@@ -117,58 +117,126 @@ const OrderHistory = () => {
                         const statusBadge = getStatusBadge(order.status);
                         return (
                             <Col md={12} key={order.id} className="mb-4">
-                                <Card className="shadow-sm">
-                                    <Card.Header as="h5" className="d-flex justify-content-between align-items-center">
+                                <Card
+                                    className="shadow-sm border-0"
+                                    style={{
+                                        borderRadius: '15px',
+                                        backgroundColor: '#FFFDF7',
+                                        border: '2px solid #FFD700',
+                                        transition: 'transform 0.2s',
+                                        cursor: 'pointer'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
+                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                >
+                                    <Card.Header
+                                        as="h5"
+                                        className="d-flex justify-content-between align-items-center"
+                                        style={{
+                                            backgroundColor: '#ffe6a8ff',
+                                            color: '#8B0000',
+                                            fontWeight: '600',
+                                            borderBottom: '2px solid #FFD700',
+                                            fontSize: '1rem',
+                                            borderTopLeftRadius: '13px',
+                                            borderTopRightRadius: '13px'
+                                        }}
+                                    >
                                         <span>Hóa đơn #{order.id} - {moment(order.created_date).format('HH:mm DD/MM/YYYY')}</span>
-                                        <Badge bg={statusBadge.bg} text={statusBadge.text}>{statusBadge.label}</Badge>
+                                        <Badge style={{
+
+                                            fontWeight: '500',
+                                            padding: '0.4em 0.8em',
+                                            borderRadius: '10px',
+                                            fontSize: '0.85rem'
+                                        }} bg={statusBadge.bg} text={statusBadge.text}>{statusBadge.label}</Badge>
                                     </Card.Header>
-                                    <Card.Body>
+
+                                    <Card.Body style={{ backgroundColor: '#FFFDF7' }}>
                                         <ListGroup variant="flush">
                                             {order.details.map(detail => (
-                                                <ListGroup.Item key={detail.id} className="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <Image src={detail.dish.image} width="50" rounded className="me-3" />
-                                                        <span>{detail.dish.name} (x{detail.quantity})</span>
+                                                <ListGroup.Item
+                                                    key={detail.id}
+                                                    className="d-flex justify-content-between align-items-center mb-2 shadow-sm"
+                                                    style={{
+                                                        backgroundColor: '#FFFDF7',
+                                                        border: '1px solid #8B0000',
+                                                        borderRadius: '10px',
+                                                        padding: '0.75rem 1rem',
+                                                        transition: 'transform 0.2s'
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                                >
+                                                    <div className="d-flex align-items-center">
+                                                        <Image src={detail.dish.image} width="50" rounded className="me-3 shadow-sm" />
+                                                        <span style={{ color: '#4B4B4B', fontWeight: '500' }}>{detail.dish.name} (x{detail.quantity})</span>
                                                     </div>
-                                                    <span className="fw-bold">{parseInt(detail.unit_price * detail.quantity).toLocaleString('vi-VN')} VNĐ</span>
+                                                    <span className="fw-semibold" style={{ color: '#8B0000' }}>
+                                                        {parseInt(detail.unit_price * detail.quantity).toLocaleString('vi-VN')} VNĐ
+                                                    </span>
                                                 </ListGroup.Item>
                                             ))}
                                         </ListGroup>
                                     </Card.Body>
-                                    <Card.Footer className="text-end">
-                                        <span className="fs-5 me-3"><strong>Tổng cộng:</strong> <span className="text-danger">{parseInt(order.total_amount).toLocaleString('vi-VN')} VNĐ</span></span>
+
+                                    <Card.Footer className="text-end" style={{ backgroundColor: '#ffe6a8ff', borderTop: '2px solid #FFD700', padding: '0.75rem 1rem' }}>
+                                        <div className="text-end">
+                                            <span className="fs-5 me-3" style={{ color: '#4B4B4B', fontWeight: '600' }}>
+                                                Tổng cộng:
+                                                <span style={{ color: '#8B0000', fontWeight: '700', marginLeft: '0.3rem' }}>
+                                                    {parseInt(order.total_amount).toLocaleString('vi-VN')} VNĐ
+                                                </span>
+                                            </span>
+
+                                            {order.status === 'COMPLETED' && order.payment_method && (
+                                                <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#333', fontWeight: '500' }}>
+                                                    Phương thức thanh toán: <span style={{ color: '#8B0000', fontWeight: '600' }}>{order.payment_method}</span>
+                                                </div>
+                                            )}
+                                        </div>
                                         {order.status === 'PENDING' && (
                                             <>
                                                 <Button
-                                                    variant="danger"
+                                                    style={{ backgroundColor: '#B33A3A', border: 'none', fontWeight: '500' }}
                                                     className="me-2"
+                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                                                     onClick={() => handleCancelOrder(order.id)}
                                                 >
-                                                    <Trash className="me-1" />
-                                                    Hủy đơn hàng
+                                                    <Trash className="me-1" /> Hủy đơn
                                                 </Button>
 
                                                 <Button
-                                                    variant="success"
+                                                    style={{ backgroundColor: '#FFC107', color: '#333', border: 'none', fontWeight: '500' }}
                                                     className="me-2"
+                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                                                     onClick={() => handlePayment(order.id, 'MOMO')}
                                                 >
-                                                    <Wallet className="me-1" />
-                                                    Thanh toán MoMo
+                                                    <Wallet className="me-1" /> Thanh toán MoMo
                                                 </Button>
 
                                                 <Button
-                                                    variant="info"
+                                                    style={{ backgroundColor: '#1976D2', color: '#FFF', border: 'none', fontWeight: '500' }}
+                                                    className="me-2"
+                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                                                     onClick={() => handlePayment(order.id, 'VNPAY')}
                                                 >
-                                                    <Bank className="me-1" />
-                                                    Thanh toán VNPay
+                                                    <Bank className="me-1" /> Thanh toán VNPay
                                                 </Button>
                                             </>
                                         )}
                                     </Card.Footer>
                                 </Card>
                             </Col>
+
+
+
+
+
+
                         )
                     })}
                 </Row>

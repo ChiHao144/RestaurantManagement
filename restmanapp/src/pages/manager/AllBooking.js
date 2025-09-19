@@ -85,7 +85,7 @@ const AllBookings = () => {
 
     return (
         <Container className="my-4" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700', letterSpacing: '1px' }}>Quản Lý Tất Cả Đơn Đặt Bàn</h1>
+            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700', letterSpacing: '1px' }}>QUẢN LÝ TẤT CẢ ĐƠN ĐẶT BÀN</h1>
             
             <Form.Group className="mb-3" style={{ maxWidth: '300px' }}>
                 <Form.Label className="fw-bold" style={{ color: '#1a73e8' }}>Lọc theo trạng thái:</Form.Label>
