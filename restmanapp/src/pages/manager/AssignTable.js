@@ -73,7 +73,6 @@ const AssignTable = () => {
         }));
     };
 
-
     const handleSubmit = async () => {
         if (selectedTables.length === 0) {
             alert("Vui lòng chọn ít nhất một bàn.");
@@ -98,8 +97,6 @@ const AssignTable = () => {
                 details: detailsPayload
             });
 
-            
-
             alert("Gán bàn và xác nhận đơn thành công!");
             navigate("/manager"); 
 
@@ -112,7 +109,7 @@ const AssignTable = () => {
     };
 
     if (loading) {
-        return <Container className="text-center my-5"><Spinner animation="border" /></Container>;
+        return <Container className="text-center my-5"><Spinner animation="border" variant="primary" /></Container>;
     }
 
     if (error) {
@@ -124,13 +121,15 @@ const AssignTable = () => {
     }
 
     return (
-        <Container className="my-5">
-            <h1 className="text-center text-dark mb-4">XÁC NHẬN VÀ GÁN BÀN</h1>
+        <Container className="my-5" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700', letterSpacing: '1px' }}>XÁC NHẬN VÀ GÁN BÀN</h1>
             <Row>
                 <Col md={5}>
-                    <h2 className="h4 mb-3">Thông tin yêu cầu</h2>
-                    <Card>
-                        <Card.Header as="h5">Yêu cầu #{booking.id}</Card.Header>
+                    <h2 className="h5 mb-3" style={{ color: '#1a73e8', fontWeight: '600' }}>Thông tin yêu cầu</h2>
+                    <Card style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: 'none' }}>
+                        <Card.Header style={{ backgroundColor: '#1a73e8', color: '#fff', fontWeight: '600', borderRadius: '12px 12px 0 0' }}>
+                            Yêu cầu #{booking.id}
+                        </Card.Header>
                         <Card.Body>
                             <p><strong>Khách hàng:</strong> {booking.user.first_name} {booking.user.last_name}</p>
                             <p><strong>Thời gian:</strong> {moment(booking.booking_time).format('HH:mm [ngày] DD/MM/YYYY')}</p>
@@ -141,12 +140,12 @@ const AssignTable = () => {
                 </Col>
 
                 <Col md={7}>
-                    <h2 className="h4 mb-3">Chọn bàn trống phù hợp</h2>
+                    <h2 className="h5 mb-3" style={{ color: '#1a73e8', fontWeight: '600' }}>Chọn bàn trống phù hợp</h2>
                     {availableTables.length > 0 ? (
                         <Form>
                             <ListGroup>
                                 {availableTables.map(table => (
-                                    <ListGroup.Item key={table.id}>
+                                    <ListGroup.Item key={table.id} style={{ borderRadius: '8px', border: '1px solid #b6d4fe', marginBottom: '10px' }}>
                                         <Form.Check 
                                             type="checkbox"
                                             id={`table-${table.id}`}
@@ -162,6 +161,7 @@ const AssignTable = () => {
                                                 className="mt-2"
                                                 value={staffNotes[table.id] || ''}
                                                 onChange={(e) => handleNoteChange(table.id, e.target.value)}
+                                                style={{ borderRadius: '6px', border: '1px solid #b6d4fe' }}
                                             />
                                         )}
                                     </ListGroup.Item>
@@ -169,15 +169,17 @@ const AssignTable = () => {
                             </ListGroup>
                         </Form>
                     ) : (
-                        <Alert variant="warning">Không tìm thấy bàn nào trống phù hợp với yêu cầu này.</Alert>
+                        <Alert variant="info" style={{ borderRadius: '8px', backgroundColor: '#d0e4ff', color: '#084298', border: '1px solid #b6d4fe' }}>
+                            Không tìm thấy bàn nào trống phù hợp với yêu cầu này.
+                        </Alert>
                     )}
 
                     <div className="d-grid mt-4">
                         <Button 
-                            variant="dark" 
                             size="lg"
                             onClick={handleSubmit}
                             disabled={submitting || selectedTables.length === 0}
+                            style={{ backgroundColor: '#1a73e8', border: 'none', borderRadius: '8px', padding: '10px', fontWeight: '600', transition: 'all 0.2s' }}
                         >
                             {submitting ? <Spinner size="sm" /> : 'Xác nhận và Gán bàn'}
                         </Button>

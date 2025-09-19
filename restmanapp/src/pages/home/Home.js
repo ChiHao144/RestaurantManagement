@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Button, Spinner, Alert, Form, FormControl, }
 import { Link, useParams } from "react-router-dom";
 import Apis, { endpoints } from "../../configs/Apis";
 import { CartContext } from "../../configs/CartContext";
-import { Search } from "react-bootstrap-icons";
+import { CheckCircleFill, Search } from "react-bootstrap-icons";
 
 const Home = () => {
     const { categoryName } = useParams();
@@ -17,6 +17,16 @@ const Home = () => {
     const [hasMore, setHasMore] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [debouncedQuery, setDebouncedQuery] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const [showMessage, setShowMessage] = useState(false);
+
+    const handleAddToCart = (dish) => {
+        addToCart(dish);
+        setSuccessMessage(`${dish.name} đã được thêm vào giỏ hàng!`);
+        setShowMessage(true);
+        setTimeout(() => setShowMessage(false), 2000);
+    };
+
 
 
     useEffect(() => {
@@ -104,6 +114,7 @@ const Home = () => {
     if (error) {
         return <Alert variant="danger" className="mt-4">{error}</Alert>;
     }
+
 
     return (
         <Container className="my-4">
@@ -211,7 +222,7 @@ const Home = () => {
                                             </Button>
                                             <Button
                                                 style={{ backgroundColor: "#8B0000", border: "none" }}
-                                                onClick={() => addToCart(dish)}
+                                                onClick={() => handleAddToCart(dish)}
                                             >
                                                 Thêm vào giỏ
                                             </Button>
@@ -235,6 +246,45 @@ const Home = () => {
                     </Button>
                 </div>
             )}
+
+            {showMessage && (
+                <>
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            width: "100vw",
+                            height: "100vh",
+                            backgroundColor: "rgba(0,0,0,0.4)",
+                            zIndex: 9998,
+                        }}
+                    />
+
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            backgroundColor: "white",
+                            padding: "30px 40px",
+                            borderRadius: "12px",
+                            boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
+                            zIndex: 9999,
+                            textAlign: "center",
+                            minWidth: "280px",
+                            animation: "popupEffect 0.4s ease-out",
+                        }}
+                    >
+                        <CheckCircleFill size={60} color="#28a745" style={{ marginBottom: "15px" }} />
+                        <div style={{ color: "#333", fontSize: "18px", fontWeight: "600" }}>
+                            {successMessage}
+                        </div>
+                    </div>
+                </>
+            )}
+
         </Container>
     );
 };

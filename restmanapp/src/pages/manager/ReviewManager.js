@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { Container, ListGroup, Spinner, Alert, Image, Button, Form, Card } from 'react-bootstrap';
+import { Container, ListGroup, Spinner, Alert, Image, Button, Form, Card, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { authApi, endpoints } from '../../configs/Apis';
 import { UserContext } from '../../configs/UserContext';
@@ -10,7 +10,7 @@ const StarRating = ({ rating }) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
         stars.push(
-            <span key={i} className={`star ${i <= rating ? 'text-warning' : 'text-secondary'}`}>
+            <span key={i} className={`star ${i <= rating ? 'text-warning' : 'text-secondary'}`} style={{ fontSize: '1.1rem' }}>
                 &#9733;
             </span>
         );
@@ -76,7 +76,7 @@ const ReviewManagement = () => {
     };
 
     if (loading) {
-        return <div className="text-center my-5"><Spinner animation="border" variant="success" /></div>;
+        return <div className="text-center my-5"><Spinner animation="border" variant="primary" /></div>;
     }
 
     if (error) {
@@ -84,17 +84,20 @@ const ReviewManagement = () => {
     }
 
     return (
-        <Container className="my-4">
-            <h1 className="text-center text-success mb-4">Quản Lý Đánh Giá Khách Hàng</h1>
+        <Container className="my-4" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700' }}>Quản Lý Đánh Giá Khách Hàng</h1>
             <ListGroup>
                 {reviews.length > 0 ? reviews.map(r => (
-                    <ListGroup.Item key={r.id} className="mb-3 shadow-sm">
-                        <Card>
-                            <Card.Header className="d-flex justify-content-between">
+                    <ListGroup.Item key={r.id} className="mb-3 shadow-sm" style={{ borderRadius: '10px', border: '1px solid #cfe0fc', transition: 'transform 0.2s', cursor: 'pointer' }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                        <Card className="border-0">
+                            <Card.Header className="d-flex justify-content-between" style={{ backgroundColor: '#1a73e8', color: '#fff', borderRadius: '10px 10px 0 0' }}>
                                 <span>
-                                    Đánh giá cho món: <Link to={`/dishes/${r.dish.id}`} className="fw-bold">{r.dish.name}</Link>
+                                    Đánh giá cho món: <Link to={`/dishes/${r.dish.id}`} className="fw-bold text-white">{r.dish.name}</Link>
                                 </span>
-                                <small className="text-muted">{moment(r.created_date).format('HH:mm DD/MM/YYYY')}</small>
+                                <small className="text-light">{moment(r.created_date).format('HH:mm DD/MM/YYYY')}</small>
                             </Card.Header>
                             <Card.Body>
                                 <div className="d-flex">
@@ -106,7 +109,7 @@ const ReviewManagement = () => {
 
                                         {r.replies && r.replies.length > 0 && (
                                             <div className="mt-3 ms-4 border-start ps-3">
-                                                <h6 className="fw-bold">Phản hồi từ nhà hàng:</h6>
+                                                <h6 className="fw-bold" style={{ color: '#1a73e8' }}>Phản hồi từ nhà hàng:</h6>
                                                 {r.replies.map(reply => (
                                                     <div key={reply.id} className="d-flex mb-2">
                                                         <Image src={reply.user.avatar} alt={reply.user.username} roundedCircle width="40" height="40" className="me-2" />
@@ -127,12 +130,12 @@ const ReviewManagement = () => {
                                                         onChange={(e) => setReplyContent(e.target.value)}
                                                         placeholder="Nhập phản hồi của bạn..." required className="mb-2"
                                                     />
-                                                    <Button type="submit" size="sm" variant="success">Gửi</Button>
+                                                    <Button type="submit" size="sm" variant="primary">Gửi</Button>
                                                     <Button size="sm" variant="secondary" className="ms-2" onClick={() => setReplyingTo(null)}>Hủy</Button>
                                                 </Form>
                                             ) : (
                                                  (!r.replies || r.replies.length === 0) && (
-                                                    <Button variant="outline-success" size="sm" onClick={() => setReplyingTo(r.id)}>
+                                                    <Button variant="outline-primary" size="sm" onClick={() => setReplyingTo(r.id)}>
                                                         Phản hồi
                                                     </Button>
                                                  )

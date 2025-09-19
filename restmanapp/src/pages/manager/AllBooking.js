@@ -48,6 +48,7 @@ const AllBookings = () => {
             setBookings(res.data.results || res.data);
         } catch (err) {
             console.error("Lỗi khi tải danh sách đặt bàn:", err);
+            setError("Không thể tải dữ liệu. Vui lòng thử lại.");
         } finally {
             setLoading(false);
         }
@@ -75,7 +76,7 @@ const AllBookings = () => {
     const filteredBookings = bookings.filter(b => filterStatus === 'ALL' || b.status === filterStatus);
 
     if (loading) {
-        return <div className="text-center my-5"><Spinner animation="border" variant="success" /></div>;
+        return <div className="text-center my-5"><Spinner animation="border" variant="primary" /></div>;
     }
     
     if (error) {
@@ -83,11 +84,11 @@ const AllBookings = () => {
     }
 
     return (
-        <Container className="my-4">
-            <h1 className="text-center text-success mb-4">Quản Lý Tất Cả Đơn Đặt Bàn</h1>
+        <Container className="my-4" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700', letterSpacing: '1px' }}>Quản Lý Tất Cả Đơn Đặt Bàn</h1>
             
             <Form.Group className="mb-3" style={{ maxWidth: '300px' }}>
-                <Form.Label className="fw-bold">Lọc theo trạng thái:</Form.Label>
+                <Form.Label className="fw-bold" style={{ color: '#1a73e8' }}>Lọc theo trạng thái:</Form.Label>
                 <Form.Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                     <option value="ALL">Tất cả</option>
                     <option value="PENDING">Đang chờ</option>
@@ -97,8 +98,8 @@ const AllBookings = () => {
                 </Form.Select>
             </Form.Group>
 
-            <Table striped bordered hover responsive className="shadow-sm">
-                <thead className="table-dark">
+            <Table striped bordered hover responsive className="shadow-sm" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                <thead className="table-primary" style={{ backgroundColor: '#1a73e8', color: '#fff' }}>
                     <tr>
                         <th>#ID</th>
                         <th>Khách hàng</th>
@@ -125,7 +126,7 @@ const AllBookings = () => {
                             <td>
                                 <div className="d-flex flex-column flex-sm-row gap-2">
                                     {b.status === 'PENDING' && (
-                                        <Button as={Link} to={`/manager/assign/${b.id}`} variant="dark" size="sm">
+                                        <Button as={Link} to={`/manager/assign/${b.id}`} style={{ backgroundColor: '#1a73e8', border: 'none' }} size="sm">
                                             Gán bàn
                                         </Button>
                                     )}
@@ -139,7 +140,7 @@ const AllBookings = () => {
                         </tr>
                     )) : (
                         <tr>
-                            <td colSpan="7" className="text-center">Không có đơn đặt bàn nào.</td>
+                            <td colSpan="7" className="text-center" style={{ color: '#1a73e8' }}>Không có đơn đặt bàn nào.</td>
                         </tr>
                     )}
                 </tbody>

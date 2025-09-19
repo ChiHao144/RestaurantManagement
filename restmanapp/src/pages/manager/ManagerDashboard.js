@@ -11,14 +11,13 @@ const ManagerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
     useEffect(() => {
         const loadPendingBookings = async () => {
-            if (user && (user.role === 'WAITER' || user.role === 'MANAGER' || user.role === 'ADMIN')) {
+            if (user && ['WAITER', 'MANAGER', 'ADMIN'].includes(user.role)) {
                 try {
                     setLoading(true);
                     setError(null);
-                     const res = await authApi().get(endpoints['pending-bookings']);
+                    const res = await authApi().get(endpoints['pending-bookings']);
                     setPendingBookings(res.data);
                 } catch (err) {
                     console.error("Lỗi khi tải danh sách đặt bàn:", err);
@@ -28,7 +27,6 @@ const ManagerDashboard = () => {
                 }
             }
         };
-
         loadPendingBookings();
     }, [user]);
 
@@ -39,7 +37,7 @@ const ManagerDashboard = () => {
     if (loading) {
         return (
             <Container className="text-center my-5">
-                <Spinner animation="border" variant="dark" />
+                <Spinner animation="border" variant="primary" />
                 <p className="mt-2">Đang tải danh sách yêu cầu...</p>
             </Container>
         );
@@ -54,20 +52,27 @@ const ManagerDashboard = () => {
     }
 
     return (
-        <Container className="my-5">
-            <h1 className="text-center text-dark mb-4">QUẢN LÝ ĐẶT BÀN</h1>
-            <h2 className="h4 mb-3">Yêu cầu đang chờ xác nhận</h2>
+        <Container 
+            className="my-5" 
+            style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+        >
+            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700', letterSpacing: '1px' }}>
+                QUẢN LÝ ĐẶT BÀN
+            </h1>
+            <h2 className="h5 mb-4" style={{ color: '#1a73e8', fontWeight: '600' }}>Yêu cầu đang chờ xác nhận</h2>
 
             {pendingBookings.length === 0 ? (
-                <Alert variant="info">Không có yêu cầu đặt bàn nào đang chờ.</Alert>
+                <Alert variant="info" style={{ borderRadius: '8px', backgroundColor: '#d0e4ff', color: '#084298', border: '1px solid #b6d4fe' }}>
+                    Không có yêu cầu đặt bàn nào đang chờ.
+                </Alert>
             ) : (
                 <Row>
                     {pendingBookings.map(booking => (
                         <Col md={6} lg={4} key={booking.id} className="mb-4">
-                            <Card className="h-100">
-                                <Card.Header as="h5">
+                            <Card style={{ borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', border: 'none', transition: 'transform 0.2s' }} className="h-100 hover-card">
+                                <Card.Header style={{ backgroundColor: '#1a73e8', color: '#fff', fontWeight: '600', borderRadius: '12px 12px 0 0' }}>
                                     Yêu cầu #{booking.id}
-                                    <Badge bg="warning" text="dark" className="ms-2">Đang chờ</Badge>
+                                    <Badge bg="info" text="dark" className="ms-2">Đang chờ</Badge>
                                 </Card.Header>
                                 <Card.Body>
                                     <Card.Text>
@@ -83,8 +88,12 @@ const ManagerDashboard = () => {
                                         <strong>Ghi chú:</strong> {booking.note || 'Không có'}
                                     </Card.Text>
                                 </Card.Body>
-                                <Card.Footer className="text-end">
-                                    <Button as={Link} to={`/manager/assign/${booking.id}`} variant="dark">
+                                <Card.Footer className="text-end" style={{ backgroundColor: 'transparent', borderTop: '1px solid #b6d4fe' }}>
+                                    <Button 
+                                        as={Link} 
+                                        to={`/manager/assign/${booking.id}`} 
+                                        style={{ backgroundColor: '#1a73e8', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: '600', transition: 'all 0.2s' }}
+                                    >
                                         Xem & Gán bàn
                                     </Button>
                                 </Card.Footer>

@@ -1,7 +1,7 @@
 import axios from "axios";
 import cookie from 'react-cookies';
 
-const BASE_URL = "http://192.168.1.104:8000/";
+const BASE_URL = "http://192.168.1.105:8000/";
 
 export const endpoints = {
     'categories': '/categories/',
@@ -33,6 +33,7 @@ export const endpoints = {
     'initiate-vnpay-payment': (orderId) => `/orders/${orderId}/initiate-vnpay-payment/`,
     'stats-revenue': '/stats/revenue/',
     'stats-dishes': '/stats/dish-popularity/',
+    'stats-reviews': '/stats/review-summary/',
     'chatbot-ask': '/chatbot/ask/',
     'request-password-reset': '/password-reset/request-reset/',
     'confirm-password-reset': '/password-reset/confirm/',

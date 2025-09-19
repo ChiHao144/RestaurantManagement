@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, Card, Spinner, Alert, Table, Button } from 'react-bootstrap';
+import { Container, Card, Spinner, Alert, Table, Button, Badge } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { authApi, endpoints } from '../../configs/Apis';
 import { UserContext } from '../../configs/UserContext';
@@ -29,7 +29,6 @@ const OrderDetail = () => {
                 setLoading(false);
             }
         };
-
         loadOrderDetail();
     }, [orderId, user]);
 
@@ -37,8 +36,17 @@ const OrderDetail = () => {
         navigate('/manager/print-invoice', { state: { orderData: order } });
     };
 
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'PENDING': return <Badge bg="warning">Đang chờ</Badge>;
+            case 'COMPLETED': return <Badge bg="success">Hoàn thành</Badge>;
+            case 'CANCELLED': return <Badge bg="secondary">Đã hủy</Badge>;
+            default: return <Badge bg="light">{status}</Badge>;
+        }
+    };
+
     if (loading) {
-        return <div className="text-center my-5"><Spinner animation="border" variant="success" /></div>;
+        return <div className="text-center my-5"><Spinner animation="border" variant="primary" /></div>;
     }
 
     if (error) {
@@ -50,23 +58,26 @@ const OrderDetail = () => {
     }
 
     return (
-        <Container className="my-4">
-            <h1 className="text-center text-success mb-4">Chi Tiết Hóa Đơn #{order.id}</h1>
-            <Card className="shadow-sm">
-                <Card.Header as="h5">Thông tin chung</Card.Header>
+        <Container className="my-4" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+            <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700' }}>
+                Chi Tiết Hóa Đơn #{order.id}
+            </h1>
+
+            <Card className="shadow-sm mb-4">
+                <Card.Header as="h5" style={{ backgroundColor: '#1a73e8', color: '#fff' }}>Thông tin chung</Card.Header>
                 <Card.Body>
                     <p><strong>Khách hàng:</strong> {order.user ? `${order.user.last_name} ${order.user.first_name}` : (order.table ? `Bàn ${order.table.table_number}` : 'Khách vãng lai')}</p>
                     <p><strong>Ngày tạo:</strong> {moment(order.created_date).format('HH:mm DD/MM/YYYY')}</p>
-                    <p><strong>Trạng thái:</strong> <span className={`text-${order.status === 'COMPLETED' ? 'success' : 'warning'}`}>{order.status}</span></p>
+                    <p><strong>Trạng thái:</strong> {getStatusBadge(order.status)}</p>
                     <p><strong>Phương thức thanh toán:</strong> {order.payment_method}</p>
                 </Card.Body>
             </Card>
 
-            <Card className="mt-4 shadow-sm">
-                <Card.Header as="h5">Chi tiết các món ăn</Card.Header>
+            <Card className="shadow-sm">
+                <Card.Header as="h5" style={{ backgroundColor: '#1a73e8', color: '#fff' }}>Chi tiết các món ăn</Card.Header>
                 <Card.Body>
-                    <Table striped bordered hover responsive>
-                        <thead className="table-dark">
+                    <Table striped bordered hover responsive className="shadow-sm" style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                        <thead style={{ backgroundColor: '#1a73e8', color: '#fff' }}>
                             <tr>
                                 <th>#</th>
                                 <th>Tên món ăn</th>
@@ -97,7 +108,7 @@ const OrderDetail = () => {
             </Card>
 
             <div className="text-center mt-4">
-                <Button variant="success" size="lg" onClick={handlePrint}>
+                <Button style={{ backgroundColor: '#1a73e8', border: 'none' }} size="lg" onClick={handlePrint}>
                     In Hóa Đơn
                 </Button>
             </div>

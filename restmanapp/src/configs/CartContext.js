@@ -40,7 +40,6 @@ export const CartProvider = ({ children }) => {
 
 
     const localStorageKey = user ? `cart_${user.id}` : 'cart_guest';
-
     const initialState = JSON.parse(localStorage.getItem(localStorageKey)) || [];
     const [cart, dispatch] = React.useReducer(cartReducer, initialState);
 

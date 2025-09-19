@@ -23,10 +23,7 @@ const ForgotPassword = () => {
     return (
         <Container className="my-5 p-4 rounded shadow" style={{ maxWidth: '500px', backgroundColor: '#fffbea' }}>
             <h1 className="text-center mb-4" style={{ color: '#8B0000' }}>QUÊN MẬT KHẨU</h1>
-            {message ? (
-                <Alert style={{ backgroundColor: '#FFD700', color: '#8B0000', border: 'none' }}>
-                    {message}
-                </Alert>
+            {message ? (<Alert style={{ backgroundColor: '#FFD700', color: '#8B0000', border: 'none' }}>{message}</Alert>
             ) : (
                 <Form onSubmit={handleSubmit}>
                     <p style={{ color: '#8B0000' }}>

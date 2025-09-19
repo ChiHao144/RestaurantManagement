@@ -619,6 +619,19 @@ class StatsViewSet(viewsets.ViewSet):
 
         return Response(stats)
 
+    @action(methods=['get'], detail=False, url_path='review-summary')
+    def review_summary(self, request):
+        stats = Dish.objects.annotate(
+            review_count=Count('reviews'),
+            avg_rating=Avg('reviews__rating')
+        ).filter(review_count__gt=0).values(
+            'name',
+            'review_count',
+            'avg_rating'
+        ).order_by('-avg_rating', '-review_count')[:10]
+
+        return Response(stats)
+
 
 class ChatbotViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]

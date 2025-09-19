@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.contrib import admin
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Avg
 from django.db.models.functions import TruncMonth
 from django.template.response import TemplateResponse
 from django.urls import path
@@ -145,6 +145,14 @@ class RestaurantAdminSite(admin.AdminSite):
             order_count=Count('order_details')
         ).filter(order_count__gt=0).values('name', 'order_count').order_by('-order_count')[:10]
 
+        review_counts = Dish.objects.annotate(
+            review_count=Count('reviews')
+        ).filter(review_count__gt=0).values('name', 'review_count').order_by('-review_count')
+
+        average_ratings = Dish.objects.annotate(
+            avg_rating=Avg('reviews__rating')
+        ).filter(avg_rating__isnull=False).values('name', 'avg_rating').order_by('-avg_rating')
+
         context = {
             'title': f'Thống kê Kinh doanh - {month}/{year}',
             'total_revenue': total_revenue,
@@ -155,6 +163,8 @@ class RestaurantAdminSite(admin.AdminSite):
             'current_year': year,
             'current_month': month,
             'year_options': range(current_year, current_year - 5, -1),
+            'review_counts': list(review_counts),
+            'average_ratings': list(average_ratings),
         }
         return TemplateResponse(request, 'admin/statistics.html', context)
 

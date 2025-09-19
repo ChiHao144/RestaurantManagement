@@ -1,116 +1,202 @@
 {% extends "admin/base_site.html" %}
 {% load humanize %}
 {% block content %}
-<div class="container-fluid mt-4">
-    <h1 class="mb-4">{{ title }}</h1>
+    <div class="container-fluid mt-4">
+        <h1 class="mb-4">{{ title }}</h1>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="d-flex align-items-end gap-3">
-                <div>
-                    <label for="year" class="form-label">Chọn Năm</label>
-                    <select name="year" id="year" class="form-select">
-                        {% for y in year_options %}
-                        <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
-                        {% endfor %}
-                    </select>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="get" class="d-flex align-items-end gap-3">
+                    <div>
+                        <label for="year" class="form-label">Chọn Năm</label>
+                        <select name="year" id="year" class="form-select">
+                            {% for y in year_options %}
+                                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Xem báo cáo</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-success shadow h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tổng Doanh thu</h5>
+                        <p class="card-text fs-3 fw-bold">{{ total_revenue|intcomma }} VNĐ</p>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Xem báo cáo</button>
-            </form>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info shadow h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tổng số Đơn hàng (Hoàn thành)</h5>
+                        <p class="card-text fs-3 fw-bold">{{ total_completed_orders }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-warning shadow h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Tổng số Khách (Đã phục vụ)</h5>
+                        <p class="card-text fs-3 fw-bold">{{ total_guests_served }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white fw-bold">Biểu đồ Doanh thu theo Tháng (Năm {{ current_year }})</div>
+                    <div class="card-body">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white fw-bold">Top 10 Món ăn được gọi nhiều nhất</div>
+                    <div class="card-body">
+                        <canvas id="dishPopularityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white fw-bold">Số lượt đánh giá từng món</div>
+                        <div class="card-body">
+                            <canvas id="reviewCountsChart" style="height:400px;"></canvas>
+                            <hr>
+                            <h6>Danh sách chi tiết:</h6>
+                            <ul class="list-group list-group-flush mt-2">
+                                {% for item in review_counts %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ item.name }}
+                                        <span class="badge bg-success rounded-pill">{{ item.review_count }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white fw-bold">Điểm đánh giá trung bình từng món</div>
+                        <div class="card-body">
+                            <canvas id="avgRatingsChart" style="height:400px;"></canvas>
+                            <hr>
+                            <h6>Danh sách chi tiết:</h6>
+                            <ul class="list-group list-group-flush mt-2">
+                                {% for item in average_ratings %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ item.name }}
+                                        <span class="badge bg-warning rounded-pill">{{ item.avg_rating|floatformat:1 }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-success shadow h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Tổng Doanh thu</h5>
-                    <p class="card-text fs-3 fw-bold">{{ total_revenue|intcomma }} VNĐ</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-info shadow h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Tổng số Đơn hàng (Hoàn thành)</h5>
-                    <p class="card-text fs-3 fw-bold">{{ total_completed_orders }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-warning shadow h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Tổng số Khách (Đã phục vụ)</h5>
-                    <p class="card-text fs-3 fw-bold">{{ total_guests_served }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{ revenue_by_month|json_script:"revenue-data" }}
+    {{ dish_popularity|json_script:"dish-popularity-data" }}
+    {{ review_counts|json_script:"review-counts-data" }}
+    {{ average_ratings|json_script:"average-ratings-data" }}
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header">Biểu đồ Doanh thu theo Tháng (Năm {{ current_year }})</div>
-                <div class="card-body">
-                    <canvas id="revenueChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card shadow-sm">
-                <div class="card-header">Top 10 Món ăn được gọi nhiều nhất</div>
-                <div class="card-body">
-                    <canvas id="dishPopularityChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-{{ revenue_by_month|json_script:"revenue-data" }}
-{{ dish_popularity|json_script:"dish-popularity-data" }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const revenueData = JSON.parse(document.getElementById('revenue-data').textContent);
+            const revenueLabels = Array.from({length: 12}, (_, i) => `Tháng ${i + 1}`);
+            const revenueValues = Array(12).fill(0);
+            revenueData.forEach(item => {
+                const monthIndex = new Date(item.month).getMonth();
+                revenueValues[monthIndex] = item.total;
+            });
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const revenueData = JSON.parse(document.getElementById('revenue-data').textContent);
-        const revenueLabels = Array.from({ length: 12 }, (_, i) => `Tháng ${i + 1}`);
-        const revenueValues = Array(12).fill(0);
-        revenueData.forEach(item => {
-            const monthIndex = new Date(item.month).getMonth();
-            revenueValues[monthIndex] = item.total;
+            new Chart(document.getElementById('revenueChart'), {
+                type: 'bar',
+                data: {
+                    labels: revenueLabels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: revenueValues,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    }]
+                },
+            });
+
+            const dishData = JSON.parse(document.getElementById('dish-popularity-data').textContent);
+            const dishLabels = dishData.map(d => d.name);
+            const dishValues = dishData.map(d => d.order_count);
+
+            new Chart(document.getElementById('dishPopularityChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: dishLabels,
+                    datasets: [{
+                        label: 'Số lượt gọi',
+                        data: dishValues,
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                            '#FF9F40', '#C9CBCF', '#E7E9ED', '#8DDF3E', '#F172A1'
+                        ],
+                    }]
+                },
+            });
+
+            const reviewCountsData = JSON.parse(document.getElementById('review-counts-data').textContent);
+            const reviewCountsLabels = reviewCountsData.map(d => d.name);
+            const reviewCountsValues = reviewCountsData.map(d => d.review_count);
+
+            new Chart(document.getElementById('reviewCountsChart'), {
+                type: 'bar',
+                data: {
+                    labels: reviewCountsLabels,
+                    datasets: [{
+                        label: 'Số lượt đánh giá',
+                        data: reviewCountsValues,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {legend: {display: false}},
+                    scales: {y: {beginAtZero: true}}
+                }
+            });
+
+            
+            const avgRatingsData = JSON.parse(document.getElementById('average-ratings-data').textContent);
+            const avgRatingsLabels = avgRatingsData.map(d => d.name);
+            const avgRatingsValues = avgRatingsData.map(d => parseFloat(d.avg_rating).toFixed(1));
+
+            new Chart(document.getElementById('avgRatingsChart'), {
+                type: 'bar',
+                data: {
+                    labels: avgRatingsLabels,
+                    datasets: [{
+                        label: 'Điểm trung bình (trên 5)',
+                        data: avgRatingsValues,
+                        backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {y: {beginAtZero: true, max: 5}},
+                    plugins: {legend: {display: false}}
+                }
+            });
         });
-
-        new Chart(document.getElementById('revenueChart'), {
-            type: 'bar',
-            data: {
-                labels: revenueLabels,
-                datasets: [{
-                    label: 'Doanh thu (VNĐ)',
-                    data: revenueValues,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                }]
-            },
-        });
-
-        const dishData = JSON.parse(document.getElementById('dish-popularity-data').textContent);
-        const dishLabels = dishData.map(d => d.name);
-        const dishValues = dishData.map(d => d.order_count);
-
-        new Chart(document.getElementById('dishPopularityChart'), {
-            type: 'doughnut',
-            data: {
-                labels: dishLabels,
-                datasets: [{
-                    label: 'Số lượt gọi',
-                    data: dishValues,
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                        '#FF9F40', '#C9CBCF', '#E7E9ED', '#8DDF3E', '#F172A1'
-                    ],
-                }]
-            },
-        });
-    });
-</script>
+    </script>
 {% endblock %}

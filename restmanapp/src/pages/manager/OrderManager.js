@@ -114,7 +114,7 @@ const OrderManagement = () => {
     });
 
     if (loading) {
-        return <div className="text-center my-5"><Spinner animation="border" variant="success" /></div>;
+        return <div className="text-center my-5"><Spinner animation="border" variant="primary" /></div>;
     }
 
     if (error) {
@@ -123,12 +123,12 @@ const OrderManagement = () => {
 
     return (
         <>
-            <Container className="my-4">
-                <h1 className="text-center text-success mb-4">Quản Lý Hóa Đơn</h1>
+            <Container className="my-4" style={{ backgroundColor: '#e7f0fd', borderRadius: '12px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+                <h1 className="text-center mb-4" style={{ color: '#1a73e8', fontWeight: '700', letterSpacing: '1px' }}>Quản Lý Hóa Đơn</h1>
 
-                <div className="d-flex justify-content-between mb-3">
+                <div className="d-flex flex-column flex-md-row justify-content-between mb-3 gap-3">
                     <Form.Group style={{ maxWidth: '300px' }}>
-                        <Form.Label className="fw-bold">Lọc theo trạng thái:</Form.Label>
+                        <Form.Label className="fw-bold" style={{ color: '#1a73e8' }}>Lọc theo trạng thái:</Form.Label>
                         <Form.Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                             <option value="ALL">Tất cả</option>
                             <option value="PENDING">Đang chờ</option>
@@ -137,7 +137,7 @@ const OrderManagement = () => {
                         </Form.Select>
                     </Form.Group>
                     <Form.Group style={{ maxWidth: '300px' }}>
-                        <Form.Label className="fw-bold">Tìm theo mã hóa đơn:</Form.Label>
+                        <Form.Label className="fw-bold" style={{ color: '#1a73e8' }}>Tìm theo mã hóa đơn:</Form.Label>
                         <InputGroup>
                             <FormControl
                                 placeholder="Nhập ID..."
@@ -148,8 +148,8 @@ const OrderManagement = () => {
                     </Form.Group>
                 </div>
 
-                <Table striped bordered hover responsive className="shadow-sm">
-                    <thead className="table-dark">
+                <Table striped bordered hover responsive className="shadow-sm" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                    <thead className="table-primary" style={{ backgroundColor: '#1a73e8', color: '#fff' }}>
                         <tr>
                             <th>#ID</th>
                             <th>Khách hàng / Bàn</th>
@@ -170,11 +170,11 @@ const OrderManagement = () => {
                                 <td><StatusBadge status={o.status} /></td>
                                 <td>{moment(o.created_date).format('HH:mm DD/MM/YYYY')}</td>
                                 <td>
-                                    <div className="d-flex gap-2">
-                                        <Button as={Link} to={`/manager/orderdetails/${o.id}`} variant="outline-dark" size="sm">
+                                    <div className="d-flex gap-2 flex-column flex-sm-row">
+                                        <Button as={Link} to={`/manager/orderdetails/${o.id}`} style={{ backgroundColor: '#1a73e8', border: 'none' }} size="sm">
                                             Chi tiết
                                         </Button>
-                                        <Button variant="outline-primary" size="sm" onClick={() => handleOpenModal(o)}>
+                                        <Button style={{ backgroundColor: '#1a73e8', border: 'none' }} size="sm" onClick={() => handleOpenModal(o)}>
                                             Cập nhật
                                         </Button>
                                     </div>
@@ -182,7 +182,7 @@ const OrderManagement = () => {
                             </tr>
                         )) : (
                             <tr>
-                                <td colSpan="7" className="text-center">Không có hóa đơn nào phù hợp.</td>
+                                <td colSpan="7" className="text-center" style={{ color: '#1a73e8' }}>Không có hóa đơn nào phù hợp.</td>
                             </tr>
                         )}
                     </tbody>
@@ -190,7 +190,7 @@ const OrderManagement = () => {
             </Container>
 
             <Modal show={showUpdateModal} onHide={handleCloseModal} centered>
-                <Modal.Header closeButton>
+                <Modal.Header closeButton style={{ backgroundColor: '#1a73e8', color: '#fff' }}>
                     <Modal.Title>Cập nhật Hóa đơn #{selectedOrder?.id}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
@@ -225,4 +225,3 @@ const OrderManagement = () => {
 };
 
 export default OrderManagement;
-
