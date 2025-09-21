@@ -107,9 +107,14 @@ const BookingHistory = () => {
                                         style={{ backgroundColor: '#F9D77E', color: '#8B0000', fontWeight: 'bold' }}
                                     >
                                         <span>Yêu cầu #{booking.id}</span>
-                                        <Badge bg={statusBadge.bg} text={statusBadge.text}>{statusBadge.label}</Badge>
+                                        <Badge style={{
+                                            fontWeight: '500',
+                                            padding: '0.4em 0.8em',
+                                            borderRadius: '50px',
+                                            fontSize: '0.85rem'
+                                        }} bg={statusBadge.bg} text={statusBadge.text}>{statusBadge.label}</Badge>
                                     </Card.Header>
-                                    <Card.Body style={{ backgroundColor: '#FFF9F0' }}> {/* nền trắng hơi vàng dịu */}
+                                    <Card.Body style={{ backgroundColor: '#FFF9F0' }}>
                                         <Card.Text><strong>Thời gian:</strong> {moment(booking.booking_time).format('HH:mm [ngày] DD/MM/YYYY')}</Card.Text>
                                         <Card.Text><strong>Số lượng khách:</strong> {booking.number_of_guests}</Card.Text>
                                         <Card.Text><strong>Ghi chú của bạn:</strong> {booking.note || 'Không có'}</Card.Text>
@@ -132,7 +137,14 @@ const BookingHistory = () => {
                                     {isCancellable && (
                                         <Card.Footer className="text-end" style={{ backgroundColor: '#F9D77E' }}>
                                             <Button
-                                                style={{ backgroundColor: '#8B0000', border: 'none' }}
+                                                style={{
+                                                    backgroundColor: '#8B0000',
+                                                    fontWeight: '500',
+                                                    padding: '0.4em 0.8em',
+                                                    borderRadius: '50px',
+                                                    fontSize: '0.85rem',
+                                                    border: 'none'
+                                                }}
                                                 size="sm"
                                                 onClick={() => cancelBooking(booking.id)}
                                             >

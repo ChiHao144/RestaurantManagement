@@ -147,7 +147,7 @@ const OrderHistory = () => {
 
                                             fontWeight: '500',
                                             padding: '0.4em 0.8em',
-                                            borderRadius: '10px',
+                                            borderRadius: '50px',
                                             fontSize: '0.85rem'
                                         }} bg={statusBadge.bg} text={statusBadge.text}>{statusBadge.label}</Badge>
                                     </Card.Header>
@@ -180,7 +180,7 @@ const OrderHistory = () => {
                                         </ListGroup>
                                     </Card.Body>
 
-                                    <Card.Footer className="text-end" style={{ backgroundColor: '#ffe6a8ff', borderTop: '2px solid #FFD700', padding: '0.75rem 1rem' }}>
+                                    <Card.Footer className="text-end" style={{ backgroundColor: '#FFFDF7', borderTop: '2px solid #FFD700', padding: '0.75rem 1rem' }}>
                                         <div className="text-end">
                                             <span className="fs-5 me-3" style={{ color: '#4B4B4B', fontWeight: '600' }}>
                                                 Tổng cộng:
@@ -190,7 +190,7 @@ const OrderHistory = () => {
                                             </span>
 
                                             {order.status === 'COMPLETED' && order.payment_method && (
-                                                <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#333', fontWeight: '500' }}>
+                                                <div style={{ marginTop: '0.5rem', fontWeight: '700', marginLeft: '0.3rem', fontWeight: '500' }}>
                                                     Phương thức thanh toán: <span style={{ color: '#8B0000', fontWeight: '600' }}>{order.payment_method}</span>
                                                 </div>
                                             )}
@@ -198,7 +198,12 @@ const OrderHistory = () => {
                                         {order.status === 'PENDING' && (
                                             <>
                                                 <Button
-                                                    style={{ backgroundColor: '#B33A3A', border: 'none', fontWeight: '500' }}
+                                                    style={{
+                                                        backgroundColor: '#B33A3A', border: 'none',
+                                                        fontWeight: '500',
+                                                        padding: '0.4em 0.8em',
+                                                        borderRadius: '50px',
+                                                    }}
                                                     className="me-2"
                                                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
                                                     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -208,7 +213,14 @@ const OrderHistory = () => {
                                                 </Button>
 
                                                 <Button
-                                                    style={{ backgroundColor: '#FFC107', color: '#333', border: 'none', fontWeight: '500' }}
+                                                    style={{
+                                                        backgroundColor: '#ff00a2ff', 
+                                                        border: 'none',
+                                                        color: '#333',
+                                                        fontWeight: '500',
+                                                        padding: '0.4em 0.8em',
+                                                        borderRadius: '50px',
+                                                    }}
                                                     className="me-2"
                                                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
                                                     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -218,7 +230,14 @@ const OrderHistory = () => {
                                                 </Button>
 
                                                 <Button
-                                                    style={{ backgroundColor: '#1976D2', color: '#FFF', border: 'none', fontWeight: '500' }}
+                                                    style={{
+                                                        backgroundColor: '#1976D2', 
+                                                        border: 'none',
+                                                        color: '#FFF',
+                                                        fontWeight: '500',
+                                                        padding: '0.4em 0.8em',
+                                                        borderRadius: '50px',
+                                                    }}
                                                     className="me-2"
                                                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
                                                     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -231,12 +250,6 @@ const OrderHistory = () => {
                                     </Card.Footer>
                                 </Card>
                             </Col>
-
-
-
-
-
-
                         )
                     })}
                 </Row>
@@ -244,6 +257,5 @@ const OrderHistory = () => {
         </Container>
     );
 };
-
 
 export default OrderHistory;
