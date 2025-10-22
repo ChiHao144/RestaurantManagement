@@ -235,6 +235,25 @@ class UserAdmin(BaseUserAdmin):
         )
     role_badge.short_description = "Vai trò"
 
+    # CHẶN ADMIN PHỤ CHỈNH QUYỀN ADMIN CHỦ NHÀ HÀNG
+    def has_change_permission(self, request, obj=None):
+        if obj and obj.username == "admin":
+            if request.user.username != "admin":
+                return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.username == "admin":
+            if request.user.username != "admin":
+                return False
+        return super().has_delete_permission(request, obj)
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(super().get_readonly_fields(request, obj))
+        if obj and obj.username == "admin" and request.user.username != "admin":
+            readonly += ["role", "is_superuser", "is_staff", "username"]
+        return readonly
+
 
 admin_site = RestaurantAdminSite(name='RestaurantAdmin')
 

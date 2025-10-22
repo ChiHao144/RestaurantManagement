@@ -4,7 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 import moment from 'moment';
 import { UserContext } from '../../configs/UserContext';
 import { authApi, endpoints } from '../../configs/Apis';
-import { Bank, Trash, Wallet } from 'react-bootstrap-icons';
+import { Bank, Check, CheckCircle, Trash, Wallet } from 'react-bootstrap-icons';
 
 moment.locale('vi');
 
@@ -51,6 +51,23 @@ const OrderHistory = () => {
             }
         }
     };
+
+    const handleConfirmOrder = async (orderId) => {
+        if (window.confirm("Bạn có chắc chắn xác nhận đơn hàng này không? Thao tác này không thể hoàn tác.")) {
+            try {
+                const res = await authApi().patch(endpoints['confirm-order'](orderId));
+                setOrders(currentOrders =>
+                    currentOrders.map(o => (o.id === orderId ? res.data : o))
+                );
+                alert("Xác nhận đơn hàng thành công!");
+            } catch (err) {
+                console.error(`Lỗi khi xác nhận đơn #${orderId}:`, err);
+                const errorMessage = err.response?.data?.error || "Đã xảy ra lỗi. Vui lòng thử lại.";
+                alert(errorMessage);
+            }
+        }
+    };
+
     const handlePayment = async (orderId, paymentType) => {
         try {
             let endpoint;
@@ -93,6 +110,10 @@ const OrderHistory = () => {
         switch (status) {
             case 'PENDING':
                 return { bg: 'warning', text: 'dark', label: 'Chưa thanh toán' };
+            case 'PAID':
+                return { bg: 'warning', text: 'dark', label: 'Đã thanh toán' };
+            case 'SHIPPING':
+                return { bg: 'warning', text: 'dark', label: 'Đang giao hàng' };
             case 'COMPLETED':
                 return { bg: 'success', text: 'white', label: 'Đã hoàn thành' };
             case 'CANCELLED':
@@ -180,74 +201,140 @@ const OrderHistory = () => {
                                         </ListGroup>
                                     </Card.Body>
 
-                                    <Card.Footer className="text-end" style={{ backgroundColor: '#FFFDF7', borderTop: '2px solid #FFD700', padding: '0.75rem 1rem' }}>
-                                        <div className="text-end">
-                                            <span className="fs-5 me-3" style={{ color: '#4B4B4B', fontWeight: '600' }}>
-                                                Tổng cộng:
-                                                <span style={{ color: '#8B0000', fontWeight: '700', marginLeft: '0.3rem' }}>
-                                                    {parseInt(order.total_amount).toLocaleString('vi-VN')} VNĐ
-                                                </span>
-                                            </span>
-
-                                            {order.status === 'COMPLETED' && order.payment_method && (
-                                                <div style={{ marginTop: '0.5rem', fontWeight: '700', marginLeft: '0.3rem', fontWeight: '500' }}>
-                                                    Phương thức thanh toán: <span style={{ color: '#8B0000', fontWeight: '600' }}>{order.payment_method}</span>
+                                    <Card.Footer
+                                        style={{
+                                            backgroundColor: '#FFFDF7',
+                                            borderTop: '2px solid #FFD700',
+                                            padding: '0.75rem 1rem'
+                                        }}
+                                    >
+                                        <div className="d-flex justify-content-between flex-wrap align-items-start">
+                                            
+                                            <div className="text-start" style={{ flex: '1' }}>
+                                                <div style={{ fontWeight: '500', marginBottom: '0.5rem' }}>
+                                                    Địa chỉ nhận hàng:{' '}
+                                                    <span style={{ color: '#8B0000', fontWeight: '600' }}>
+                                                        {order.shipping_address}
+                                                    </span>
                                                 </div>
-                                            )}
+                                                <div style={{ fontWeight: '500' }}>
+                                                    Ghi chú:{' '}
+                                                    <span style={{ color: '#8B0000', fontWeight: '600' }}>
+                                                        {order.note}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                           
+                                            <div className="text-end" style={{ flex: '1' }}>
+                                                <span
+                                                    className="fs-5 me-3"
+                                                    style={{ color: '#4B4B4B', fontWeight: '600' }}
+                                                >
+                                                    Tổng cộng:
+                                                    <span
+                                                        style={{
+                                                            color: '#8B0000',
+                                                            fontWeight: '700',
+                                                            marginLeft: '0.3rem'
+                                                        }}
+                                                    >
+                                                        {parseInt(order.total_amount).toLocaleString('vi-VN')} VNĐ
+                                                    </span>
+                                                </span>
+
+                                                {order.status === 'COMPLETED' && order.payment_method && (
+                                                    <div
+                                                        style={{
+                                                            marginTop: '0.5rem',
+                                                            fontWeight: '500'
+                                                        }}
+                                                    >
+                                                        Phương thức thanh toán:{' '}
+                                                        <span style={{ color: '#8B0000', fontWeight: '600' }}>
+                                                            {order.payment_method}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                        
+                                                <div className="mt-3">
+                                                    {order.status === 'PENDING' && (
+                                                        <>
+                                                            <Button
+                                                                style={{
+                                                                    backgroundColor: '#B33A3A',
+                                                                    border: 'none',
+                                                                    fontWeight: '500',
+                                                                    padding: '0.4em 0.8em',
+                                                                    borderRadius: '50px',
+                                                                }}
+                                                                className="me-2"
+                                                                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                                                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                                                onClick={() => handleCancelOrder(order.id)}
+                                                            >
+                                                                <Trash className="me-1" /> Hủy đơn
+                                                            </Button>
+
+                                                            <Button
+                                                                style={{
+                                                                    backgroundColor: '#ff00a2ff',
+                                                                    border: 'none',
+                                                                    color: '#333',
+                                                                    fontWeight: '500',
+                                                                    padding: '0.4em 0.8em',
+                                                                    borderRadius: '50px',
+                                                                }}
+                                                                className="me-2"
+                                                                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                                                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                                                onClick={() => handlePayment(order.id, 'MOMO')}
+                                                            >
+                                                                <Wallet className="me-1" /> Thanh toán MoMo
+                                                            </Button>
+
+                                                            <Button
+                                                                style={{
+                                                                    backgroundColor: '#1976D2',
+                                                                    border: 'none',
+                                                                    color: '#FFF',
+                                                                    fontWeight: '500',
+                                                                    padding: '0.4em 0.8em',
+                                                                    borderRadius: '50px',
+                                                                }}
+                                                                className="me-2"
+                                                                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                                                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                                                onClick={() => handlePayment(order.id, 'VNPAY')}
+                                                            >
+                                                                <Bank className="me-1" /> Thanh toán VNPay
+                                                            </Button>
+                                                        </>
+                                                    )}
+
+                                                    {order.status === 'SHIPPING' && (
+                                                        <Button
+                                                            style={{
+                                                                backgroundColor: '#098059ff',
+                                                                border: 'none',
+                                                                color: '#FFF',
+                                                                fontWeight: '500',
+                                                                padding: '0.4em 0.8em',
+                                                                borderRadius: '50px',
+                                                            }}
+                                                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                                                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                                            onClick={() => handleConfirmOrder(order.id)}
+                                                        >
+                                                            <CheckCircle className="me-1" /> Xác nhận đã nhận được đơn hàng
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                        {order.status === 'PENDING' && (
-                                            <>
-                                                <Button
-                                                    style={{
-                                                        backgroundColor: '#B33A3A', border: 'none',
-                                                        fontWeight: '500',
-                                                        padding: '0.4em 0.8em',
-                                                        borderRadius: '50px',
-                                                    }}
-                                                    className="me-2"
-                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                                                    onClick={() => handleCancelOrder(order.id)}
-                                                >
-                                                    <Trash className="me-1" /> Hủy đơn
-                                                </Button>
-
-                                                <Button
-                                                    style={{
-                                                        backgroundColor: '#ff00a2ff', 
-                                                        border: 'none',
-                                                        color: '#333',
-                                                        fontWeight: '500',
-                                                        padding: '0.4em 0.8em',
-                                                        borderRadius: '50px',
-                                                    }}
-                                                    className="me-2"
-                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                                                    onClick={() => handlePayment(order.id, 'MOMO')}
-                                                >
-                                                    <Wallet className="me-1" /> Thanh toán MoMo
-                                                </Button>
-
-                                                <Button
-                                                    style={{
-                                                        backgroundColor: '#1976D2', 
-                                                        border: 'none',
-                                                        color: '#FFF',
-                                                        fontWeight: '500',
-                                                        padding: '0.4em 0.8em',
-                                                        borderRadius: '50px',
-                                                    }}
-                                                    className="me-2"
-                                                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                                                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                                                    onClick={() => handlePayment(order.id, 'VNPAY')}
-                                                >
-                                                    <Bank className="me-1" /> Thanh toán VNPay
-                                                </Button>
-                                            </>
-                                        )}
                                     </Card.Footer>
+
                                 </Card>
                             </Col>
                         )

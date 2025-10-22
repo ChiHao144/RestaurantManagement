@@ -4,18 +4,20 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Apis, { authApi, endpoints } from '../../configs/Apis';
 import { UserContext } from '../../configs/UserContext';
 import { CartContext } from '../../configs/CartContext';
-import { TableContext } from '../../configs/TableContext'; 
+import { TableContext } from '../../configs/TableContext';
 
 const Cart = () => {
   const { cart, updateQuantity, clearCart } = useContext(CartContext);
   const { user } = useContext(UserContext);
-  const { tableId, setCurrentTable } = useContext(TableContext); 
+  const { tableId, setCurrentTable } = useContext(TableContext);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [searchParams] = useSearchParams();
+  const [shippingAddress, setShippingAddress] = useState('');
+  const [note, setNote] = useState('');
 
-  
+
   useEffect(() => {
     const tableIdFromUrl = searchParams.get('table');
     if (tableIdFromUrl) {
@@ -36,7 +38,7 @@ const Cart = () => {
         quantity: item.quantity,
       }));
 
-    
+
       if (tableId) {
         await Apis.post(endpoints['place-order-at-table'], {
           table_id: tableId,
@@ -50,6 +52,8 @@ const Cart = () => {
         const orderData = {
           payment_method: paymentMethod,
           cart: cartData,
+          shipping_address: shippingAddress,
+          note: note,
         };
         const res = await authApi().post(endpoints['orders'], orderData);
         const newOrder = res.data;
@@ -210,6 +214,24 @@ const Cart = () => {
 
             {!tableId && (
               <Form.Group className="mb-3">
+                <Form.Label className="fw-bold">Địa chỉ giao hàng</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  value={shippingAddress}
+                  onChange={(e) => setShippingAddress(e.target.value)}
+                  placeholder="Nhập số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
+                  required
+                />
+                <Form.Label className="fw-bold">Ghi chú (nếu có)</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={1}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Nhập ghi chú..."
+                  required
+                />
                 <Form.Label className="fw-bold">
                   Chọn phương thức thanh toán
                 </Form.Label>

@@ -1,7 +1,7 @@
 import axios from "axios";
 import cookie from 'react-cookies';
 
-const BASE_URL = "http://192.168.1.104:8000/";
+const BASE_URL = "http://192.168.1.35:8000/";
 
 export const endpoints = {
     'categories': '/categories/',
@@ -39,6 +39,7 @@ export const endpoints = {
     'confirm-password-reset': '/password-reset/confirm/',
     'complete-booking': (bookingId) => `/bookings/${bookingId}/complete/`,
     'cancel-order': (orderId) => `/orders/${orderId}/cancel/`,
+    'confirm-order': (orderId) => `/orders/${orderId}/confirm/`,
 }
 
 export const authApi = () => {

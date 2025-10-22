@@ -39,6 +39,8 @@ const OrderDetail = () => {
     const getStatusBadge = (status) => {
         switch (status) {
             case 'PENDING': return <Badge bg="warning">Đang chờ</Badge>;
+            case 'PAID': return <Badge bg="warning">Đã thanh toán</Badge>;
+            case 'SHIPPING': return <Badge bg="warning">Đang giao hàng</Badge>;
             case 'COMPLETED': return <Badge bg="success">Hoàn thành</Badge>;
             case 'CANCELLED': return <Badge bg="secondary">Đã hủy</Badge>;
             default: return <Badge bg="light">{status}</Badge>;
@@ -68,6 +70,8 @@ const OrderDetail = () => {
                 <Card.Body>
                     <p><strong>Khách hàng:</strong> {order.user ? `${order.user.last_name} ${order.user.first_name}` : (order.table ? `Bàn ${order.table.table_number}` : 'Khách vãng lai')}</p>
                     <p><strong>Ngày tạo:</strong> {moment(order.created_date).format('HH:mm DD/MM/YYYY')}</p>
+                    <p><strong>Địa chỉ nhận hàng:</strong> {order.shipping_address}</p>
+                    <p><strong>Ghi chú:</strong> {order.note}</p>
                     <p><strong>Trạng thái:</strong> {getStatusBadge(order.status)}</p>
                     <p><strong>Phương thức thanh toán:</strong> {order.payment_method}</p>
                 </Card.Body>

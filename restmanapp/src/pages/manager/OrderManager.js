@@ -19,6 +19,14 @@ const StatusBadge = ({ status }) => {
             variant = 'success';
             text = 'Hoàn thành';
             break;
+        case 'PAID':
+            variant = 'warning';
+            text = 'Đã thanh toán';
+            break;
+        case 'SHIPPING':
+            variant = 'warning';
+            text = 'Đang giao hàng';
+            break;
         case 'CANCELLED':
             variant = 'secondary';
             text = 'Đã hủy';
@@ -132,6 +140,8 @@ const OrderManagement = () => {
                         <Form.Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                             <option value="ALL">Tất cả</option>
                             <option value="PENDING">Đang chờ</option>
+                            <option value="PAID">Đã thanh toán</option>
+                            <option value="SHIPPING">Đang giao hàng</option>
                             <option value="COMPLETED">Hoàn thành</option>
                             <option value="CANCELLED">Đã hủy</option>
                         </Form.Select>
@@ -198,6 +208,8 @@ const OrderManagement = () => {
                         <Form.Label>Trạng thái mới:</Form.Label>
                         <Form.Select value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
                             <option value="PENDING">Đang chờ</option>
+                            <option value="PAID">Đã thanh toán</option>
+                            <option value="SHIPPING">Đang giao hàng</option>
                             <option value="COMPLETED">Hoàn thành</option>
                             <option value="CANCELLED">Đã hủy</option>
                         </Form.Select>

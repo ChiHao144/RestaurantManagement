@@ -185,6 +185,17 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        available_tables_count = Table.objects.filter(status=Table.TableStatus.AVAILABLE).count()
+
+        if available_tables_count <= 0:
+            return Response(
+                {'error': 'Hiện tại nhà hàng đã hết bàn trống. Vui lòng quay lại sau hoặc liên hệ trực tiếp.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return super().create(request, *args, **kwargs)
+
     @action(methods=['post'], detail=True, url_path='assign-details', permission_classes=[perms.IsManagerUser])
     def assign_details(self, request, pk):
         try:
@@ -316,7 +327,8 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
                 order = Order.objects.create(
                     user=request.user,
                     payment_method=request.data.get('payment_method', 'CASH'),
-                    note=request.data.get('note')
+                    note=request.data.get('note'),
+                    shipping_address=request.data.get('shipping_address'),
                 )
                 total_amount = 0
                 for item in cart:
@@ -481,6 +493,27 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
         except Order.DoesNotExist:
             return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
 
+    @action(methods=['patch'], detail=True, url_path='confirm', permission_classes=[permissions.IsAuthenticated])
+    def confirm_order(self, request, pk=None):
+        try:
+            order = self.get_object()
+
+            if order.user != request.user:
+                return Response({'error': 'Bạn không có quyền thực hiện hành động này.'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+            if order.status == 'SHIPPING':
+                order.status = 'COMPLETED'
+                order.save()
+                return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {'error': f'Không thể xác nhận hàng đang ở trạng thái "{order.status}".'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except Order.DoesNotExist:
+            return Response({'error': 'Đơn hàng không tồn tại.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class VNPayIPNViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
@@ -501,7 +534,7 @@ class VNPayIPNViewSet(viewsets.ViewSet):
                 order = Order.objects.get(id=order_id)
                 if order.status == 'PENDING':
                     if response_code == "00":
-                        order.status = "COMPLETED"
+                        order.status = "PAID"
                         order.payment_method = "VNPAY"
                         order.save()
                     else:
@@ -567,7 +600,7 @@ class MomoIPNViewSet(viewsets.ViewSet):
             try:
                 order = Order.objects.get(pk=original_order_id)
                 if order.status == 'PENDING':
-                    order.status = 'COMPLETED'
+                    order.status = 'PAID'
                     order.payment_method = 'MOMO'
                     order.save()
                     logging.info(f"Order {original_order_id} updated to COMPLETED via MoMo IPN.")

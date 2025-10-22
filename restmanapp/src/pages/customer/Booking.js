@@ -43,7 +43,12 @@ const Booking = () => {
             setSubmitSuccess(true);
         } catch (err) {
             console.error("Lỗi khi đặt bàn:", err);
-            setSubmitError("Không thể gửi yêu cầu đặt bàn. Vui lòng thử lại.");
+
+            if (err.response && err.response.data && err.response.data.error) {
+                setSubmitError(err.response.data.error);
+            } else {
+                setSubmitError("Không thể gửi yêu cầu đặt bàn. Vui lòng thử lại.");
+            }
         } finally {
             setSubmitting(false);
         }

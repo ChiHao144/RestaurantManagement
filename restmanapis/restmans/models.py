@@ -63,6 +63,8 @@ class Order(BaseModel):
 
     class OrderStatus(models.TextChoices):
         PENDING = 'PENDING', 'Đang chờ'
+        PAID = 'PAID', 'Đã thanh toán'
+        SHIPPING = 'SHIPPING', 'Đang giao'
         COMPLETED = 'COMPLETED', 'Hoàn thành'
         CANCELLED = 'CANCELLED', 'Đã hủy'
 
@@ -77,6 +79,7 @@ class Order(BaseModel):
     status = models.CharField(max_length=10, choices=OrderStatus.choices, default=OrderStatus.PENDING,
                               verbose_name="Trạng thái")
     note = models.TextField(null=True, blank=True, verbose_name="Ghi chú hóa đơn")
+    shipping_address = models.CharField(max_length=255, null=True, blank=True, verbose_name="Địa chỉ giao hàng")
 
     def __str__(self):
         if self.user:
