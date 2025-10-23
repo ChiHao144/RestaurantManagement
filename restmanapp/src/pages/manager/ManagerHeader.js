@@ -1,16 +1,20 @@
 import { useContext } from "react";
-import { Container, Nav, Navbar, NavDropdown, Image } from "react-bootstrap";
+import { Container, Nav, Navbar, NavDropdown, Image, Badge } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { UserContext } from "../../configs/UserContext";
 import { useNavigate } from "react-router-dom";
+import { BookingContext } from "../../configs/BookingContext";
 
 const ManagerHeader = () => {
   const { user, logout } = useContext(UserContext);
+  const { booking } = useContext(BookingContext);
+  const bookingItemCount = booking.filter(item => !item.table).reduce((count, item) => count + (item.quantity || 1), 0);
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();        
-    navigate("/");  
+    logout();
+    navigate("/");
   };
 
   return (
@@ -26,7 +30,16 @@ const ManagerHeader = () => {
         <Navbar.Collapse id="manager-navbar-nav">
           <Nav className="me-auto">
             <LinkContainer to="/manager/pending-bookings">
-              <Nav.Link>Danh sách đơn đặt bàn</Nav.Link>
+              <Nav.Link className="text-light fw-semibold position-relative">
+                Danh sách đơn đặt bàn{" "}
+                <Badge pill
+                  bg="warning"
+                  text="dark"
+                  className="ms-1"
+                  style={{ fontSize: "0.8rem" }}>
+                  {isNaN(bookingItemCount) ? 0 : bookingItemCount}
+                </Badge>
+              </Nav.Link>
             </LinkContainer>
             <LinkContainer to="/manager/all-bookings">
               <Nav.Link>Tất cả đơn đặt bàn</Nav.Link>

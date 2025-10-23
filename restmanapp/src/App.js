@@ -37,65 +37,68 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import LandingPage from "./pages/customer/LandingPage";
 import WaiterLayout from "./components/layout/WaiterLayout";
 import DashboardHome from "./pages/common/HomeWaiterManager";
+import { BookingProvider } from "./configs/BookingContext";
 
 const App = () => {
   return (
     <UserProvider>
       <CartProvider>
-        <TableProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* ---- Layout cho khách hàng ---- */}
-              <Route path="/" element={<CustomerLayout />}>
-                <Route index element={<LandingPage />} />
-                <Route path="categories/:categoryName" element={<Home />} />
-                <Route path="login" element={<Login />} />
-                <Route path="register" element={<Register />} />
-                <Route path="forgot-password" element={<ForgotPassword />} />
-                <Route path="reset-password/:uid/:token/" element={<ResetPassword />} />
-                <Route path="booking" element={<Booking />} />
-                <Route path="history-booking" element={<BookingHistory />} />
-                <Route path="cart" element={<Cart />} />
-                <Route path="order-history" element={<OrderHistory />} />
-                <Route path="dishes/:dishId" element={<DishDetail />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="payment-success" element={<PaymentSuccess />} />
-                <Route path="payment-failure" element={<PaymentFailure />} />
-                <Route path="menu" element={<Home />} />
-              </Route>
+        <BookingProvider>
+          <TableProvider>
+            <BrowserRouter>
+              <Routes>
+                {/* ---- Layout cho khách hàng ---- */}
+                <Route path="/" element={<CustomerLayout />}>
+                  <Route index element={<LandingPage />} />
+                  <Route path="categories/:categoryName" element={<Home />} />
+                  <Route path="login" element={<Login />} />
+                  <Route path="register" element={<Register />} />
+                  <Route path="forgot-password" element={<ForgotPassword />} />
+                  <Route path="reset-password/:uid/:token/" element={<ResetPassword />} />
+                  <Route path="booking" element={<Booking />} />
+                  <Route path="history-booking" element={<BookingHistory />} />
+                  <Route path="cart" element={<Cart />} />
+                  <Route path="order-history" element={<OrderHistory />} />
+                  <Route path="dishes/:dishId" element={<DishDetail />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="payment-success" element={<PaymentSuccess />} />
+                  <Route path="payment-failure" element={<PaymentFailure />} />
+                  <Route path="menu" element={<Home />} />
+                </Route>
 
-              {/* ---- Layout cho manager ---- */}
-              <Route path="/manager" element={<ManagerLayout />}>
-                <Route index element={<DashboardHome />} />
-                <Route path="pending-bookings" element={<ManagerDashboard />} />
-                <Route path="all-bookings" element={<AllBookings />} />
-                <Route path="assign/:bookingId" element={<AssignTable />} />
-                <Route path="table-management" element={<TableStatusDashboard />} />
-                <Route path="orders" element={<OrderManagement />} />
-                <Route path="orderdetails/:orderId" element={<OrderDetail />} />
-                <Route path="print-invoice" element={<PrintableInvoice />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="allreviews" element={<ReviewManagement />} />
-                <Route path="statistics" element={<Statistics />} />
-              </Route>
+                {/* ---- Layout cho manager ---- */}
+                <Route path="/manager" element={<ManagerLayout />}>
+                  <Route index element={<DashboardHome />} />
+                  <Route path="pending-bookings" element={<ManagerDashboard />} />
+                  <Route path="all-bookings" element={<AllBookings />} />
+                  <Route path="assign/:bookingId" element={<AssignTable />} />
+                  <Route path="table-management" element={<TableStatusDashboard />} />
+                  <Route path="orders" element={<OrderManagement />} />
+                  <Route path="orderdetails/:orderId" element={<OrderDetail />} />
+                  <Route path="print-invoice" element={<PrintableInvoice />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="allreviews" element={<ReviewManagement />} />
+                  <Route path="statistics" element={<Statistics />} />
+                </Route>
 
-              {/* ---- Layout cho waiter ---- */}
-              <Route path="/waiter" element={<WaiterLayout />}>
-                <Route index element={<DashboardHome />} />
-                <Route path="table-management" element={<TableStatusDashboard />} />
-                <Route path="orders" element={<OrderManagement />} />
-                <Route path="orderdetails/:orderId" element={<OrderDetail />} />
-                <Route path="print-invoice" element={<PrintableInvoice />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="allreviews" element={<ReviewManagement />} />
-              </Route>
+                {/* ---- Layout cho waiter ---- */}
+                <Route path="/waiter" element={<WaiterLayout />}>
+                  <Route index element={<DashboardHome />} />
+                  <Route path="table-management" element={<TableStatusDashboard />} />
+                  <Route path="orders" element={<OrderManagement />} />
+                  <Route path="orderdetails/:orderId" element={<OrderDetail />} />
+                  <Route path="print-invoice" element={<PrintableInvoice />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="allreviews" element={<ReviewManagement />} />
+                </Route>
 
 
-              {/* 404 fallback */}
-              <Route path="*" element={<h1>404 - Không tìm thấy trang</h1>} />
-            </Routes>
-          </BrowserRouter>
-        </TableProvider>
+                {/* 404 fallback */}
+                <Route path="*" element={<h1>404 - Không tìm thấy trang</h1>} />
+              </Routes>
+            </BrowserRouter>
+          </TableProvider>
+        </BookingProvider>
       </CartProvider>
     </UserProvider>
   );

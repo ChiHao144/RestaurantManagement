@@ -4,6 +4,7 @@ import { UserContext } from '../../configs/UserContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import { authApi, endpoints } from '../../configs/Apis';
+import { BookingContext } from '../../configs/BookingContext';
 
 moment.locale('vi');
 
@@ -19,6 +20,8 @@ const AssignTable = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const { assignTable, setBooking: updateBookingsContext  } = useContext(BookingContext);
+
 
     useEffect(() => {
         const loadData = async () => {
@@ -96,6 +99,7 @@ const AssignTable = () => {
             await authApi().post(endpoints['assign-details'](bookingId), {
                 details: detailsPayload
             });
+            updateBookingsContext(prev => prev.filter(item => item.id !== parseInt(bookingId)));
 
             alert("Gán bàn và xác nhận đơn thành công!");
             navigate("/manager"); 
