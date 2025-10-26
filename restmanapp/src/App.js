@@ -38,6 +38,7 @@ import LandingPage from "./pages/customer/LandingPage";
 import WaiterLayout from "./components/layout/WaiterLayout";
 import DashboardHome from "./pages/common/HomeWaiterManager";
 import { BookingProvider } from "./configs/BookingContext";
+import { OrderProvider } from "./configs/OrderContext";
 
 const App = () => {
   return (
@@ -45,7 +46,8 @@ const App = () => {
       <CartProvider>
         <BookingProvider>
           <TableProvider>
-            <BrowserRouter>
+            <OrderProvider>
+              <BrowserRouter>
               <Routes>
                 {/* ---- Layout cho khách hàng ---- */}
                 <Route path="/" element={<CustomerLayout />}>
@@ -97,6 +99,7 @@ const App = () => {
                 <Route path="*" element={<h1>404 - Không tìm thấy trang</h1>} />
               </Routes>
             </BrowserRouter>
+            </OrderProvider>
           </TableProvider>
         </BookingProvider>
       </CartProvider>

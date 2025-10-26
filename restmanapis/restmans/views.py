@@ -24,6 +24,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import viewsets, generics, parsers, permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Category, Dish, User, Review, Table, Booking, Order, OrderDetail, BookingDetail, ReviewReply
@@ -300,7 +301,7 @@ class BookingViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retr
 class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
     queryset = Order.objects.all()
     serializer_class = serializers.OrderSerializer
-    permission_classes = IsManagerAdminWaiterOrOwner
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
         if self.action in ['place_order_at_table', 'initiate_payment']:
@@ -312,11 +313,9 @@ class OrderViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.Retrie
 
     def get_queryset(self):
         user = self.request.user
-        if not user.is_authenticated:
-            return Order.objects.none()
         if user.role in [User.Role.MANAGER, User.Role.WAITER]:
-            return self.queryset
-        return self.queryset.filter(user=user)
+            return Order.objects.all()
+        return Order.objects.filter(user=user)
 
     def create(self, request, *args, **kwargs):
         cart = request.data.get('cart')
