@@ -29,7 +29,7 @@ const CustomerHeader = () => {
                 <LinkContainer to="/">
                     <Navbar.Brand className="fw-bold fs-4 text-light">
                         <Image
-                            src="https://res.cloudinary.com/dbitlfhjx/image/upload/v1757430095/avatar_bq3m47.jpg"
+                            src="https://res.cloudinary.com/dbitlfhjx/image/upload/v1770782506/logo_scou2k.png"
                             width="45"
                             height="45"
                             roundedCircle

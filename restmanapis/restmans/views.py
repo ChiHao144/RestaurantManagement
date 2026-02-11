@@ -665,6 +665,93 @@ class StatsViewSet(viewsets.ViewSet):
         return Response(stats)
 
 
+# class ChatbotViewSet(viewsets.ViewSet):
+#     permission_classes = [permissions.AllowAny]
+#
+#     @action(methods=['post'], detail=False, url_path='ask')
+#     def ask(self, request):
+#         user_message = request.data.get('message')
+#         chat_history = request.data.get('history', [])
+#
+#         if not user_message:
+#             return Response({'error': 'Vui lòng nhập câu hỏi của bạn.'}, status=400)
+#
+#         try:
+#             all_dishes = Dish.objects.filter(is_active=True)
+#             menu_context = "\n".join(
+#                 [f"- {d.name}: {d.price} VND" for d in all_dishes]
+#             )
+#
+#             best_sellers = Dish.objects.annotate(
+#                 order_count=Count('order_details')
+#             ).filter(order_count__gt=0).order_by('-order_count')[:5]
+#
+#             top_rated = Dish.objects.annotate(
+#                 avg_rating=Avg('reviews__rating')
+#             ).filter(avg_rating__gte=4).order_by('-avg_rating')[:5]
+#
+#             best_seller_context = "\n".join(
+#                 [f"- {d.name} ({d.order_count} lượt gọi)" for d in best_sellers]
+#             )
+#             top_rated_context = "\n".join(
+#                 [f"- {d.name} (Điểm: {d.avg_rating:.1f}/5)" for d in top_rated]
+#             )
+#
+#             system_prompt = (
+#                 "Bạn là một trợ lý ảo thông minh, thân thiện và chuyên nghiệp của nhà hàng SpicyTown. "
+#                 "Nhiệm vụ của bạn là trò chuyện với khách hàng, trả lời các câu hỏi và giúp họ có trải nghiệm tốt nhất. "
+#                 "Sử dụng thông tin được cung cấp dưới đây làm kiến thức nền. Nếu không biết câu trả lời, hãy sử dụng công cụ tìm kiếm. "
+#                 "Luôn trả lời bằng tiếng Việt."
+#                 f"\n\n--- THÔNG TIN NHÀ HÀNG ---\n"
+#                 f"Tên: SpicyTown\n"
+#                 f"Địa chỉ: Phường Sài Gòn, TP. Hồ Chí Minh\n"
+#                 f"Giờ mở cửa: 07:00 - 23:00 hàng ngày\n\n"
+#                 f"--- MÓN ĂN BÁN CHẠY NHẤT (BEST-SELLER) ---\n{best_seller_context}\n\n"
+#                 f"--- MÓN ĂN ĐƯỢC ĐÁNH GIÁ CAO NHẤT ---\n{top_rated_context}\n\n"
+#                 f"--- THỰC ĐƠN ĐẦY ĐỦ ---\n{menu_context}"
+#             )
+#
+#             contents = []
+#             for message in chat_history:
+#                 role = "user" if message.get('sender') == 'user' else "model"
+#                 contents.append({"role": role, "parts": [{"text": message.get('text', '')}]})
+#
+#             contents.append({"role": "user", "parts": [{"text": user_message}]})
+#
+#             api_key = getattr(settings, 'GEMINI_API_KEY', None)
+#             if not api_key:
+#                 return Response({'error': 'Chưa cấu hình API Key cho dịch vụ AI.'}, status=500)
+#
+#             api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key={api_key}"
+#
+#             payload = {
+#                 "systemInstruction": {"parts": [{"text": system_prompt}]},
+#                 "contents": contents,
+#                 "tools": [{"google_search": {}}]
+#             }
+#
+#             response = requests.post(api_url, json=payload, headers={'Content-Type': 'application/json'})
+#             response.raise_for_status()
+#
+#             result_json = response.json()
+#             ai_reply = result_json['candidates'][0]['content']['parts'][0]['text']
+#
+#             return Response({'reply': ai_reply})
+#
+#         except requests.exceptions.RequestException as e:
+#             logging.error(f"Lỗi giao tiếp với Gemini API: {e}")
+#             logging.error(f"Response text: {getattr(e.response, 'text', None)}")
+#             return Response({'error': 'Dịch vụ tư vấn AI đang tạm thời gián đoạn.',
+#                              'detail': e.response.text if e.response else str(e)}, status=503)
+#
+#
+#         # except requests.exceptions.RequestException as e:
+#         #     logging.error(f"Lỗi giao tiếp với Gemini API: {e}")
+#         #     return Response({'error': 'Dịch vụ tư vấn AI đang tạm thời gián đoạn.'}, status=503)
+#         except Exception as e:
+#             logging.error(f"Lỗi xử lý chatbot: {e}")
+#             return Response({'error': 'Đã có lỗi xảy ra phía server.'}, status=500)
+
 class ChatbotViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]
 
@@ -677,10 +764,9 @@ class ChatbotViewSet(viewsets.ViewSet):
             return Response({'error': 'Vui lòng nhập câu hỏi của bạn.'}, status=400)
 
         try:
+            # 1. Thu thập dữ liệu ngữ cảnh từ Database
             all_dishes = Dish.objects.filter(is_active=True)
-            menu_context = "\n".join(
-                [f"- {d.name}: {d.price} VND" for d in all_dishes]
-            )
+            menu_context = "\n".join([f"- {d.name}: {d.price} VND" for d in all_dishes])
 
             best_sellers = Dish.objects.annotate(
                 order_count=Count('order_details')
@@ -690,39 +776,29 @@ class ChatbotViewSet(viewsets.ViewSet):
                 avg_rating=Avg('reviews__rating')
             ).filter(avg_rating__gte=4).order_by('-avg_rating')[:5]
 
-            best_seller_context = "\n".join(
-                [f"- {d.name} ({d.order_count} lượt gọi)" for d in best_sellers]
-            )
-            top_rated_context = "\n".join(
-                [f"- {d.name} (Điểm: {d.avg_rating:.1f}/5)" for d in top_rated]
-            )
+            best_seller_context = "\n".join([f"- {d.name} ({d.order_count} lượt gọi)" for d in best_sellers])
+            top_rated_context = "\n".join([f"- {d.name} (Điểm: {d.avg_rating:.1f}/5)" for d in top_rated])
 
             system_prompt = (
-                "Bạn là một trợ lý ảo thông minh, thân thiện và chuyên nghiệp của nhà hàng SpicyTown. "
-                "Nhiệm vụ của bạn là trò chuyện với khách hàng, trả lời các câu hỏi và giúp họ có trải nghiệm tốt nhất. "
-                "Sử dụng thông tin được cung cấp dưới đây làm kiến thức nền. Nếu không biết câu trả lời, hãy sử dụng công cụ tìm kiếm. "
-                "Luôn trả lời bằng tiếng Việt."
-                f"\n\n--- THÔNG TIN NHÀ HÀNG ---\n"
-                f"Tên: SpicyTown\n"
-                f"Địa chỉ: Phường Sài Gòn, TP. Hồ Chí Minh\n"
-                f"Giờ mở cửa: 07:00 - 23:00 hàng ngày\n\n"
-                f"--- MÓN ĂN BÁN CHẠY NHẤT (BEST-SELLER) ---\n{best_seller_context}\n\n"
-                f"--- MÓN ĂN ĐƯỢC ĐÁNH GIÁ CAO NHẤT ---\n{top_rated_context}\n\n"
-                f"--- THỰC ĐƠN ĐẦY ĐỦ ---\n{menu_context}"
+                "Bạn là một trợ lý ảo thông minh của nhà hàng SpicyTown. "
+                "Luôn trả lời bằng tiếng Việt thân thiện.\n\n"
+                f"--- THÔNG TIN NHÀ HÀNG ---\nĐịa chỉ: Phường Sài Gòn, TP. HCM. Giờ: 07:00 - 23:00\n"
+                f"--- BÁN CHẠY ---\n{best_seller_context}\n"
+                f"--- ĐÁNH GIÁ CAO ---\n{top_rated_context}\n"
+                f"--- THỰC ĐƠN ---\n{menu_context}"
             )
 
+            # 2. Chuẩn bị nội dung gửi cho Gemini
             contents = []
             for message in chat_history:
                 role = "user" if message.get('sender') == 'user' else "model"
                 contents.append({"role": role, "parts": [{"text": message.get('text', '')}]})
-
             contents.append({"role": "user", "parts": [{"text": user_message}]})
 
-            api_key = getattr(settings, 'GEMINI_API_KEY', None)
-            if not api_key:
-                return Response({'error': 'Chưa cấu hình API Key cho dịch vụ AI.'}, status=500)
-
-            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key={api_key}"
+            # 3. Cấu hình API (Sửa lại tên model chính xác)
+            api_key = getattr(settings, 'GEMINI_API_KEY', '')
+            model_name = "gemini-2.5-flash-preview-09-2025"
+            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
 
             payload = {
                 "systemInstruction": {"parts": [{"text": system_prompt}]},
@@ -730,17 +806,47 @@ class ChatbotViewSet(viewsets.ViewSet):
                 "tools": [{"google_search": {}}]
             }
 
-            response = requests.post(api_url, json=payload, headers={'Content-Type': 'application/json'})
-            response.raise_for_status()
+            # 4. Cơ chế Retry (Xử lý lỗi 503)
+            max_retries = 5
+            retry_delay = 1  # giây
+            ai_reply = None
 
-            result_json = response.json()
-            ai_reply = result_json['candidates'][0]['content']['parts'][0]['text']
+            for i in range(max_retries):
+                try:
+                    response = requests.post(
+                        api_url,
+                        json=payload,
+                        headers={'Content-Type': 'application/json'},
+                        timeout=30
+                    )
 
-            return Response({'reply': ai_reply})
+                    if response.status_code == 503:
+                        logging.warning(f"Gemini 503 (Bận) - Thử lại lần {i + 1} sau {retry_delay}s...")
+                        time.sleep(retry_delay)
+                        retry_delay *= 2
+                        continue
 
-        except requests.exceptions.RequestException as e:
-            logging.error(f"Lỗi giao tiếp với Gemini API: {e}")
-            return Response({'error': 'Dịch vụ tư vấn AI đang tạm thời gián đoạn.'}, status=503)
+                    response.raise_for_status()
+                    result_json = response.json()
+                    ai_reply = result_json['candidates'][0]['content']['parts'][0]['text']
+                    break  # Thành công thì thoát vòng lặp
+
+                except requests.exceptions.HTTPError as e:
+                    if response.status_code != 503 or i == max_retries - 1:
+                        logging.error(f"Lỗi API ({response.status_code}): {response.text}")
+                        return Response({'error': f'Lỗi dịch vụ AI: {response.status_code}'},
+                                        status=response.status_code)
+                except requests.exceptions.RequestException as e:
+                    logging.error(f"Lỗi kết nối: {e}")
+                    if i == max_retries - 1:
+                        return Response({'error': 'Không thể kết nối tới dịch vụ AI.'}, status=503)
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+
+            if ai_reply:
+                return Response({'reply': ai_reply})
+            return Response({'error': 'AI không phản hồi.'}, status=500)
+
         except Exception as e:
             logging.error(f"Lỗi xử lý chatbot: {e}")
             return Response({'error': 'Đã có lỗi xảy ra phía server.'}, status=500)
