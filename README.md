@@ -20,7 +20,7 @@ Hệ thống sử dụng MySQL làm hệ quản trị cơ sở dữ liệu để
 Hệ thống được xây dựng trên mô hình kiến trúc Client – Server, trong đó hai thành phần chính là back-end và front-end được tách biệt rõ ràng. Cách tổ chức này vừa nâng cao hiệu năng, vừa giúp việc bảo trì và mở rộng trong tương lai thuận lợi hơn.
 
 <p align="center">
-  <img src="https://res.cloudinary.com/dbitlfhjx/image/upload/v1770795101/kientruhethong_rod5r8.png" width="60%" />
+  <img src="https://res.cloudinary.com/dbitlfhjx/image/upload/v1770795101/kientruhethong_rod5r8.png" width="60%"/><br>
   <em>Kiến trúc hệ thống</em>
 </p>
 
@@ -57,6 +57,52 @@ Hệ thống được xây dựng trên mô hình kiến trúc Client – Server
 > - Quản lý trả lời đánh giá và đánh giá
 > - Quản lý đơn đặt bàn
 > - Quản lý người dùng
+
+# Các ngôn ngữ lập trình và công nghệ sử dụng
+> - Ngôn ngữ lập trình: `Python`, `JavaScript`
+> - Backend Framework: `Django`
+> - Frontend Library: `ReactJS`
+> - IDE sử dụng: `PyCharm`, `Visual Studio Code`
+> - Cơ sở dữ liệu: `MySQL`
+> - Công nghệ quản lý mã nguồn: `GitHub`
+> - Công cụ vẽ sơ đồ phân tích & thiết kế dữ liệu: `draw.io`, `MySQL Workbench`
+
+# Hướng dẫn cài đặt chương trình
+## Phần backend
+- B1: Clone project [Restaurant_Management](https://github.com/ChiHao144/RestaurantManagement)
+- B2: Mở thư mục restmanapis trong Pycharm, tạo Virtual Environment (venv) `python -m venv venv`
+- B3: Cài đặt thư viện `pip install -r requirements.txt`
+- B4: Cấu hình database MySQL trong `setting.py`
+```python
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'ten_database',
+            'USER': 'root',
+            'PASSWORD': 'your_password',
+            'HOST': 'localhost',
+            'PORT': '3306',
+        }
+    }
+```
+- B5: Migrate database `python manage.py makemigrations` và  `python manage.py migrate`
+- B6: Chạy server Django `python manage.py runserver`
+## Phần frontend
+- B1: Mở thư mục frontend `restmanapp` bằng VS Code `cd restmanapp`
+- B2: Cài đặt dependencies `npm install`
+- B3: Chạy ứng dụng React `npm start`
+  
+## Tài khoản test
+### Admin
+- Truy cập `http://127.0.0.1:8000/admin/`
+- Username: `admin`
+- Password: `123`
+### Nhân viên quản lý
+- Username: `sang`
+- Password: `123`
+### Khách hàng
+- Username: `hao`
+- Password: `123`
 
 # Demo các chức năng nổi bật
 > ## Đăng ký và đăng nhập
