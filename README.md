@@ -7,7 +7,7 @@ Chào mừng bạn đến với hệ thống quản lý nhà hàng. Hệ thống
 Để nhúng hình ảnh vào trong README, bạn có thể sử dụng mã sau:
 
 ```markdown
-![Tên hình ảnh](https://link-to-your-image.com/image.jpg)
+![Tên hình ảnh](https://res.cloudinary.com/dbitlfhjx/image/upload/v1757497262/main_vtylbc.jpg)
 ```
 
 Chỉ cần thay thế URL bằng liên kết đến hình ảnh của bạn. Bạn có thể sử dụng Blob SHA nếu hình ảnh được lưu trữ trên GitHub:
