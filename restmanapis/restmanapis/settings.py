@@ -156,6 +156,10 @@ DATABASES = {
     }
 }
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://restaurantmanagement-production-3174.up.railway.app',
+]
+
 import pymysql
 
 pymysql.install_as_MySQLdb()
