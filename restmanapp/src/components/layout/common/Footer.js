@@ -31,7 +31,7 @@ const Footer = () => {
 
         <Row className="pt-3 border-top" style={{ borderColor: "#FFD700" }}>
           <Col md={6} className="text-center text-md-start">
-            <p className="mb-0">© 2025 Restaurant Management | All Rights Reserved</p>
+            <p className="mb-0"> © {new Date().getFullYear()} Restaurant Management | All Rights Reserved</p>
           </Col>
           <Col md={6} className="text-center text-md-end">
             <a
