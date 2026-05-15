@@ -795,10 +795,17 @@ class ChatbotViewSet(viewsets.ViewSet):
                 contents.append({"role": role, "parts": [{"text": message.get('text', '')}]})
             contents.append({"role": "user", "parts": [{"text": user_message}]})
 
-            # 3. Cấu hình API (Sửa lại tên model chính xác)
+            # # 3. Cấu hình API (Sửa lại tên model chính xác)
+            # api_key = getattr(settings, 'GEMINI_API_KEY', '')
+            # model_name = "gemini-2.5-flash-preview-09-2025"
+            # api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+
             api_key = getattr(settings, 'GEMINI_API_KEY', '')
-            model_name = "gemini-2.5-flash-preview-09-2025"
-            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            model_name = "gemini-2.5-flash"
+            api_url = (
+                f"https://generativelanguage.googleapis.com/"
+                f"v1beta/models/{model_name}:generateContent?key={api_key}"
+            )
 
             payload = {
                 "systemInstruction": {"parts": [{"text": system_prompt}]},
